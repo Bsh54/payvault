@@ -17,98 +17,101 @@ export function Landing({ onStart }: { onStart: () => void }) {
       {/* Sticky nav */}
       <header className="lp-nav">
         <div className="lp-brand">
-          <ShieldCheck weight="fill" size={22} className="lp-logo-icon" />
+          <span className="lp-logo-mark">
+            <ShieldCheck weight="fill" size={19} />
+          </span>
           <span>PayVault</span>
         </div>
         <button className="lp-btn lp-btn-primary" onClick={onStart}>
-          Commencer <ArrowRight size={16} weight="bold" />
+          Get started <ArrowRight size={16} weight="bold" />
         </button>
       </header>
 
       {/* Hero */}
       <section className="lp-hero">
-        <span className="lp-eyebrow">Confidential payroll · Nox · Ethereum</span>
-        <h1>
-          Payez vos équipes on-chain.
+        <span className="eyebrow fade-up">Confidential payroll · Nox · Ethereum</span>
+        <h1 className="fade-up d1">
+          Pay your team on-chain.
           <br />
-          <span className="lp-accent">Sans révéler les salaires.</span>
+          <span className="grad-text">Without revealing salaries.</span>
         </h1>
-        <p className="lp-sub">
-          PayVault chiffre chaque salaire avec Nox — vérifiable par un auditeur,
-          invisible pour tous les autres.
+        <p className="lp-sub fade-up d2">
+          PayVault encrypts every salary with Nox — verifiable by an auditor,
+          invisible to everyone else.
         </p>
-        <div className="lp-cta-row">
+        <div className="lp-cta-row fade-up d3">
           <button className="lp-btn lp-btn-primary lp-btn-lg" onClick={onStart}>
-            Commencer <ArrowRight size={18} weight="bold" />
+            Get started <ArrowRight size={18} weight="bold" />
           </button>
           <a className="lp-btn lp-btn-ghost lp-btn-lg" href="#how">
-            Comment ça marche
+            How it works
           </a>
         </div>
       </section>
 
-      {/* Problem / Solution — before / after proof */}
+      {/* Before / After proof on the public explorer */}
       <section className="lp-ba">
-        <a className="lp-ba-card before" href={`${EXPLORER}/tx/${DEMO_PUBLIC_TX}`} target="_blank" rel="noreferrer">
+        <a className="lp-card lp-ba-card" href={`${EXPLORER}/tx/${DEMO_PUBLIC_TX}`} target="_blank" rel="noreferrer">
           <div className="lp-ba-head">
-            <Eye size={20} weight="bold" />
-            <span>Paiement classique</span>
+            <Eye size={20} weight="bold" /> <span>A normal payment</span>
           </div>
           <div className="lp-ba-amount before">5,000 <span>visible</span></div>
-          <p>Sur une blockchain publique, n'importe qui lit le montant. Les salaires sont exposés.</p>
-          <span className="lp-ba-link">Voir sur Etherscan <ArrowRight size={14} /></span>
+          <p>On a public blockchain, anyone reads the amount. Salaries are exposed to the world.</p>
+          <span className="lp-ba-link">View on Etherscan <ArrowRight size={14} /></span>
         </a>
 
         <div className="lp-ba-arrow"><ArrowRight size={26} weight="bold" /></div>
 
-        <a className="lp-ba-card after" href={`${EXPLORER}/tx/${DEMO_CONFIDENTIAL_TX}`} target="_blank" rel="noreferrer">
+        <a className="lp-card lp-ba-card" href={`${EXPLORER}/tx/${DEMO_CONFIDENTIAL_TX}`} target="_blank" rel="noreferrer">
           <div className="lp-ba-head">
-            <EyeSlash size={20} weight="bold" />
-            <span>Avec PayVault</span>
+            <EyeSlash size={20} weight="bold" /> <span>With PayVault</span>
           </div>
-          <div className="lp-ba-amount after"><LockKey size={26} weight="fill" /> chiffré</div>
-          <p>La même opération devient illisible. Seuls l'entreprise et l'employé y accèdent.</p>
-          <span className="lp-ba-link">Voir sur Etherscan <ArrowRight size={14} /></span>
+          <div className="lp-ba-amount after"><LockKey size={26} weight="fill" /> encrypted</div>
+          <p>The same operation becomes unreadable. Only the company and the employee can access it.</p>
+          <span className="lp-ba-link">View on Etherscan <ArrowRight size={14} /></span>
         </a>
       </section>
 
       {/* How it works */}
       <section className="lp-how" id="how">
-        <h2>Comment ça marche</h2>
+        <div className="lp-section-head">
+          <span className="eyebrow">How it works</span>
+          <h2>Confidential payroll, end to end</h2>
+        </div>
         <div className="lp-steps">
-          <div className="lp-step">
-            <Money size={26} weight="duotone" />
-            <h3>1 · Financement</h3>
-            <p>L'entreprise finance un coffre avec un <strong>flux Sablier public</strong> — seul le total global est visible.</p>
+          <div className="lp-card lp-step">
+            <span className="lp-step-icon"><Money size={24} weight="duotone" /></span>
+            <h3>1 · Funding</h3>
+            <p>The company funds a vault with a <strong>public Sablier stream</strong> — only the aggregate total is visible.</p>
           </div>
-          <div className="lp-step">
-            <LockKey size={26} weight="duotone" />
-            <h3>2 · Salaires chiffrés</h3>
-            <p>Chaque salaire est <strong>chiffré via Nox</strong> (TEE). Les montants ne sont jamais exposés on-chain.</p>
+          <div className="lp-card lp-step">
+            <span className="lp-step-icon"><LockKey size={24} weight="duotone" /></span>
+            <h3>2 · Encrypted salaries</h3>
+            <p>Each salary is <strong>encrypted with Nox</strong> (TEE). Amounts are never exposed on-chain.</p>
           </div>
-          <div className="lp-step">
-            <SealCheck size={26} weight="duotone" />
-            <h3>3 · Versement confidentiel</h3>
-            <p>Les employés reçoivent un <strong>solde confidentiel (cPAY)</strong>. Chacun ne voit que sa propre paie.</p>
+          <div className="lp-card lp-step">
+            <span className="lp-step-icon"><SealCheck size={24} weight="duotone" /></span>
+            <h3>3 · Confidential payout</h3>
+            <p>Employees receive a <strong>confidential balance (cPAY)</strong>. Each one sees only their own pay.</p>
           </div>
         </div>
       </section>
 
-      {/* Selective disclosure highlight */}
+      {/* Selective disclosure */}
       <section className="lp-feature">
-        <div className="lp-feature-icon"><Faders size={28} weight="duotone" /></div>
+        <span className="lp-feature-icon"><Faders size={26} weight="duotone" /></span>
         <div>
-          <h2>Confidentiel, mais auditable</h2>
+          <h2>Confidential, yet auditable</h2>
           <p>
-            L'entreprise peut autoriser un auditeur à vérifier la <strong>masse salariale totale</strong>,
-            sans jamais accéder à un salaire individuel. Confidentialité <em>et</em> conformité.
+            The company can let an auditor verify the <strong>total payroll</strong> without
+            ever accessing an individual salary. Privacy <em>and</em> compliance, together.
           </p>
         </div>
       </section>
 
       {/* Trust signals */}
       <section className="lp-trust">
-        <span>Construit avec</span>
+        <span>Built with</span>
         <div className="lp-trust-logos">
           <span>iExec · Nox</span>
           <span>Ethereum Sepolia</span>
@@ -119,15 +122,15 @@ export function Landing({ onStart }: { onStart: () => void }) {
 
       {/* Final CTA */}
       <section className="lp-final">
-        <h2>Créez votre espace entreprise.</h2>
-        <p>Connectez votre wallet — pas de mot de passe, pas de données exposées.</p>
+        <h2>Create your company space.</h2>
+        <p>Connect your wallet — no password, no exposed data.</p>
         <button className="lp-btn lp-btn-primary lp-btn-lg" onClick={onStart}>
-          Commencer <ArrowRight size={18} weight="bold" />
+          Get started <ArrowRight size={18} weight="bold" />
         </button>
       </section>
 
       <footer className="lp-footer">
-        <span>PayVault · iExec WTF Hackathon · déployé sur ETH Sepolia</span>
+        <span>PayVault · iExec WTF Hackathon · deployed on ETH Sepolia</span>
       </footer>
     </div>
   );
