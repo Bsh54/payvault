@@ -10,6 +10,10 @@ export const SABLIER_ADDRESS =
   "0xe61cb9153356419bdaD0A8767c059f92d221a3C4" as const;
 
 export const EXPLORER = "https://sepolia.etherscan.io";
+// A demo company (the deployer wallet) with real encrypted payroll, used to
+// pre-fill the public verification page so visitors see a live example.
+export const DEMO_COMPANY =
+  "0x8BEE24f6D3F421601BC044667CCD3ADc0CB39288" as const;
 
 // Live proof on the public block explorer:
 // BEFORE = a normal ERC-20 transfer (amount visible in cleartext).

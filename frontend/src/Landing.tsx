@@ -11,7 +11,7 @@ import {
 } from "@phosphor-icons/react";
 import { EXPLORER, DEMO_PUBLIC_TX, DEMO_CONFIDENTIAL_TX, PAYROLL_VAULT_ADDRESS } from "./lib/payvault";
 
-export function Landing({ onStart }: { onStart: () => void }) {
+export function Landing({ onStart, onVerify }: { onStart: () => void; onVerify: () => void }) {
   return (
     <div className="lp">
       {/* Sticky nav */}
@@ -179,6 +179,7 @@ export function Landing({ onStart }: { onStart: () => void }) {
             </div>
             <div className="lp-footer-col">
               <h4>Resources</h4>
+              <button className="lp-footer-link" onClick={onVerify}>Verify on-chain</button>
               <a href="https://github.com/Bsh54/payvault" target="_blank" rel="noreferrer">GitHub</a>
               <a href={`${EXPLORER}/address/${PAYROLL_VAULT_ADDRESS}`} target="_blank" rel="noreferrer">Smart contract</a>
               <a href="https://docs.noxprotocol.io" target="_blank" rel="noreferrer">Nox docs</a>

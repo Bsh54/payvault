@@ -190,6 +190,14 @@
   display: flex; align-items: center; justify-content: space-between; color: var(--text-3); font-size: 0.82rem;
 }
 
+/* Public verification page */
+.verify .lp-nav { justify-content: space-between; }
+.verify-hero { max-width: 720px; margin: 0 auto; text-align: center; padding: clamp(30px, 6vw, 60px) 24px 30px; }
+.verify-hero .eyebrow { margin-bottom: 20px; }
+.verify-hero h1 { font-size: clamp(2rem, 5vw, 3rem); letter-spacing: -0.03em; font-weight: 700; margin: 0 0 16px; }
+.verify-hero .lp-sub { margin: 0 auto 26px; }
+.verify-body { max-width: 720px; margin: 0 auto; padding: 10px 24px 70px; }
+
 /* Auth — split screen */
 .auth-split { min-height: 100dvh; display: grid; grid-template-columns: 1fr 1fr; }
 .auth-left {

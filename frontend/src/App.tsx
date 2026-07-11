@@ -4,7 +4,6 @@ import { useAccount, useWalletClient } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
   Buildings,
-  Globe,
   MagnifyingGlass,
   Wallet,
   LockKey,
@@ -14,6 +13,8 @@ import {
   Money,
   ShieldCheck,
   House,
+  ArrowLeft,
+  ArrowSquareOut,
 } from "@phosphor-icons/react";
 import {
   readVault,
@@ -28,16 +29,16 @@ import {
   EXPLORER,
   DEMO_PUBLIC_TX,
   DEMO_CONFIDENTIAL_TX,
+  DEMO_COMPANY,
 } from "./lib/payvault";
 import { Landing } from "./Landing";
 
-type Section = "payroll" | "funding" | "auditors" | "public" | "mypay";
+type Section = "payroll" | "funding" | "auditors" | "mypay";
 
 const TITLES: Record<Section, string> = {
   payroll: "Payroll",
   funding: "Funding",
   auditors: "Auditors",
-  public: "Public view",
   mypay: "My pay",
 };
 
@@ -48,20 +49,23 @@ function short(a?: string) {
 export function App() {
   const { address } = useAccount();
   const [section, setSection] = useState<Section>("payroll");
-  const [view, setView] = useState<"landing" | "app">(
-    () => (window.location.hash.includes("app") ? "app" : "landing"),
-  );
+  const routeFromHash = (): "landing" | "app" | "verify" => {
+    const h = window.location.hash;
+    if (h.includes("app")) return "app";
+    if (h.includes("verify")) return "verify";
+    return "landing";
+  };
+  const [view, setView] = useState<"landing" | "app" | "verify">(routeFromHash);
   const [company, setCompany] = useState<string>("");
 
   useEffect(() => {
-    const onHash = () =>
-      setView(window.location.hash.includes("app") ? "app" : "landing");
+    const onHash = () => setView(routeFromHash());
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
-  function go(v: "landing" | "app") {
-    const hash = v === "app" ? "#/app" : "#/";
+  function go(v: "landing" | "app" | "verify") {
+    const hash = v === "app" ? "#/app" : v === "verify" ? "#/verify" : "#/";
     if (window.location.hash !== hash) window.location.hash = hash;
     setView(v);
   }
@@ -79,7 +83,11 @@ export function App() {
   }
 
   if (view === "landing") {
-    return <Landing onStart={() => go("app")} />;
+    return <Landing onStart={() => go("app")} onVerify={() => go("verify")} />;
+  }
+
+  if (view === "verify") {
+    return <VerifyPage onBack={() => go("landing")} />;
   }
 
   const NavItem = ({ id, icon }: { id: Section; icon: React.ReactNode }) => (
@@ -108,9 +116,6 @@ export function App() {
           <NavItem id="funding" icon={<Money size={18} weight="bold" />} />
           <NavItem id="auditors" icon={<MagnifyingGlass size={18} weight="bold" />} />
 
-          <div className="side-group">Explore</div>
-          <NavItem id="public" icon={<Globe size={18} weight="bold" />} />
-
           <div className="side-group">Employee</div>
           <NavItem id="mypay" icon={<Wallet size={18} weight="bold" />} />
         </nav>
@@ -134,10 +139,52 @@ export function App() {
           {section === "payroll" && <PayrollPanel />}
           {section === "funding" && <FundingPanel />}
           {section === "auditors" && <AuditorsPanel />}
-          {section === "public" && <PublicPanel defaultCompany={address} />}
           {section === "mypay" && <EmployeePanel />}
         </main>
       </div>
+    </div>
+  );
+}
+
+/* ---------------- Public verification page (standalone, no wallet) ---------------- */
+
+function VerifyPage({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="lp verify">
+      <header className="lp-nav">
+        <button className="auth-back" onClick={onBack}>
+          <ArrowLeft size={16} weight="bold" /> Home
+        </button>
+        <a
+          className="lp-btn lp-btn-ghost"
+          href={`${EXPLORER}/address/${PAYROLL_VAULT_ADDRESS}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Contract on Etherscan <ArrowSquareOut size={15} weight="bold" />
+        </a>
+      </header>
+
+      <section className="verify-hero">
+        <span className="eyebrow">Public · no account needed</span>
+        <h1>Verify PayVault on-chain.</h1>
+        <p className="lp-sub">
+          Anyone can independently check that salaries are encrypted. Inspect any
+          company below, or read the contract directly on the Ethereum explorer.
+        </p>
+        <a
+          className="lp-btn lp-btn-primary lp-btn-lg"
+          href={`${EXPLORER}/address/${PAYROLL_VAULT_ADDRESS}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Open contract on Etherscan <ArrowSquareOut size={17} weight="bold" />
+        </a>
+      </section>
+
+      <section className="verify-body">
+        <PublicPanel defaultCompany={DEMO_COMPANY as Address} />
+      </section>
     </div>
   );
 }
