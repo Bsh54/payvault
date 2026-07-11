@@ -10,9 +10,14 @@ import {
   sendVaultTx,
   ZERO_HANDLE,
 } from "./lib/wallet";
-import { PAYROLL_VAULT_ADDRESS, EXPLORER } from "./lib/payvault";
+import {
+  PAYROLL_VAULT_ADDRESS,
+  EXPLORER,
+  DEMO_PUBLIC_TX,
+  DEMO_CONFIDENTIAL_TX,
+} from "./lib/payvault";
 
-type Tab = "company" | "public" | "auditor";
+type Tab = "company" | "public" | "auditor" | "employee";
 
 function short(a?: string) {
   return a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "";
@@ -83,6 +88,9 @@ export function App() {
         <button className={tab === "auditor" ? "on" : ""} onClick={() => setTab("auditor")}>
           🔎 Auditor
         </button>
+        <button className={tab === "employee" ? "on" : ""} onClick={() => setTab("employee")}>
+          💼 My pay
+        </button>
       </nav>
 
       {err && <div className="error">{err}</div>}
@@ -91,6 +99,7 @@ export function App() {
         {tab === "company" && <CompanyPanel account={account} onConnect={onConnect} />}
         {tab === "public" && <PublicPanel defaultCompany={account} />}
         {tab === "auditor" && <AuditorPanel account={account} onConnect={onConnect} />}
+        {tab === "employee" && <EmployeePanel account={account} onConnect={onConnect} />}
       </main>
 
       <footer>
@@ -210,6 +219,20 @@ function CompanyPanel({
     }
   }
 
+  async function runPayroll() {
+    setBusy(true);
+    setStatus("💸 Paying all employees confidentially…");
+    try {
+      const tx = await sendVaultTx(account!, "runPayroll", []);
+      await publicClient().waitForTransactionReceipt({ hash: tx });
+      setStatus("✅ Payroll run. Each employee received an encrypted cPAY balance — amounts stay secret.");
+    } catch (e: any) {
+      setStatus("❌ " + (e.shortMessage || e.message || String(e)));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function grantAuditor() {
     setStatus("");
     if (!isAddress(auditor, { strict: false }))
@@ -261,9 +284,14 @@ function CompanyPanel({
       <div className="card wide">
         <div className="row between">
           <h3>Your payroll ({employees.length})</h3>
-          <button className="btn ghost" disabled={busy} onClick={decryptTotal}>
-            🔓 Decrypt total{total !== "" ? `: ${total}` : ""}
-          </button>
+          <div className="row">
+            <button className="btn ghost" disabled={busy} onClick={decryptTotal}>
+              🔓 Decrypt total{total !== "" ? `: ${total}` : ""}
+            </button>
+            <button className="btn" disabled={busy || employees.length === 0} onClick={runPayroll}>
+              💸 Run payroll
+            </button>
+          </div>
         </div>
         {employees.length === 0 ? (
           <p className="muted">No employees yet.</p>
@@ -385,6 +413,23 @@ function PublicPanel({ defaultCompany }: { defaultCompany?: Address }) {
           gets what. That confidential split is enforced by Nox.
         </p>
       )}
+
+      <div className="beforeafter">
+        <h4>See it on the public block explorer</h4>
+        <div className="ba-grid">
+          <a className="ba-card before" href={`${EXPLORER}/tx/${DEMO_PUBLIC_TX}`} target="_blank">
+            <span className="ba-tag">🔴 Normal payment</span>
+            <span className="ba-amt">5,000 visible</span>
+            <span className="ba-note">A plain transfer — anyone reads the amount.</span>
+          </a>
+          <a className="ba-card after" href={`${EXPLORER}/tx/${DEMO_CONFIDENTIAL_TX}`} target="_blank">
+            <span className="ba-tag">🟢 With PayVault</span>
+            <span className="ba-amt">🔒 encrypted</span>
+            <span className="ba-note">Same operation — the salary is an unreadable handle.</span>
+          </a>
+        </div>
+      </div>
+
       {status && <div className="status">{status}</div>}
     </div>
   );
@@ -457,6 +502,73 @@ function AuditorPanel({
           <div className="stat">
             <span className="big">{total}</span>
             <span>total payroll (aggregate)</span>
+          </div>
+        </div>
+      )}
+      {status && <div className="status">{status}</div>}
+    </div>
+  );
+}
+
+/* ---------------- Employee ---------------- */
+
+function EmployeePanel({
+  account,
+  onConnect,
+}: {
+  account?: Address;
+  onConnect: () => void;
+}) {
+  const [pay, setPay] = useState("");
+  const [status, setStatus] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  if (!account)
+    return (
+      <div className="card center">
+        <p>Connect your employee wallet to see your confidential pay.</p>
+        <button className="btn" onClick={onConnect}>
+          Connect wallet
+        </button>
+      </div>
+    );
+
+  async function decryptPay() {
+    setBusy(true);
+    setStatus("🔓 Decrypting your confidential pay…");
+    try {
+      const c = vaultContract(account!);
+      const handle = (await c.read.confidentialBalanceOf([account!])) as `0x${string}`;
+      if (handle === ZERO_HANDLE) {
+        setStatus("No pay received yet (ask your company to run payroll).");
+        return;
+      }
+      const v = await decryptWithRetry(account!, handle);
+      setPay(v.toString());
+      setStatus("✅ Only you can read this. It is encrypted for everyone else.");
+    } catch (e: any) {
+      setStatus("🔒 Nothing to decrypt yet, or access not granted.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="card">
+      <h3>My confidential pay</h3>
+      <p className="muted">
+        Connected as <span className="mono">{short(account)}</span>. Your received
+        pay is held as a confidential <strong>cPAY</strong> balance (ERC-7984) —
+        encrypted on-chain. Only you can decrypt it.
+      </p>
+      <button className="btn" disabled={busy} onClick={decryptPay}>
+        🔓 Decrypt my pay
+      </button>
+      {pay && (
+        <div className="public-out">
+          <div className="stat">
+            <span className="big">{pay}</span>
+            <span>your confidential pay (cPAY)</span>
           </div>
         </div>
       )}
