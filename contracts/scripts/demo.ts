@@ -37,6 +37,8 @@ const ABI = [
   { type: "function", name: "totalPayrollHandle", stateMutability: "view", inputs: [{ name: "company", type: "address" }], outputs: [{ type: "bytes32" }] },
   { type: "function", name: "salaryHandleOf", stateMutability: "view", inputs: [{ name: "company", type: "address" }, { name: "employee", type: "address" }], outputs: [{ type: "bytes32" }] },
   { type: "function", name: "employeeCount", stateMutability: "view", inputs: [{ name: "company", type: "address" }], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "runPayroll", stateMutability: "nonpayable", inputs: [], outputs: [] },
+  { type: "function", name: "confidentialBalanceOf", stateMutability: "view", inputs: [{ name: "account", type: "address" }], outputs: [{ type: "bytes32" }] },
 ] as const;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -108,7 +110,18 @@ async function main() {
     console.log(`   ✅ correctly DENIED — auditor cannot see individual salaries.`);
   }
 
-  console.log(`\n🎉 End-to-end confidential payroll flow verified on Sepolia.`);
+  // 6. Run payroll: pay the employee confidentially, then the employee decrypts
+  //    their OWN received pay (a confidential cPAY token balance).
+  console.log(`6) runPayroll() → paying employees confidentially…`);
+  const tx3 = await vault.write.runPayroll();
+  await publicClient.waitForTransactionReceipt({ hash: tx3 });
+  const payHandle = (await vault.read.confidentialBalanceOf([employee.address])) as `0x${string}`;
+  const empWallet = createWalletClient({ account: employee, chain: sepolia, transport: http(RPC) });
+  const empHandle = await createViemHandleClient(empWallet);
+  const pay = await decryptWithRetry(empHandle, payHandle, "employee");
+  console.log(`   ✅ employee decrypted their confidential pay = ${pay}  (expected ${SALARY})`);
+
+  console.log(`\n🎉 End-to-end confidential payroll flow verified on Sepolia (funding → encrypted split → confidential payout).`);
 }
 
 main().catch((e) => {

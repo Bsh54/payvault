@@ -7,6 +7,10 @@ const baseProfile = {
   version: solc.version,
   settings: {
     evmVersion: "osaka",
+    optimizer: {
+      enabled: true,
+      runs: 200,
+    },
   },
 } as const;
 

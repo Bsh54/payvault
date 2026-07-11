@@ -13,7 +13,7 @@ async function main() {
   console.log(`Deployer: ${deployer.account.address}`);
   console.log(`Chain ID: ${chainId}`);
 
-  const vault = await viem.deployContract("PayrollVault");
+  const vault = await viem.deployContract("PayrollVault", [], { gas: 6_000_000n });
   console.log(`✅ PayrollVault deployed at: ${vault.address}`);
 
   const payusd = await viem.deployContract("PayUSD");

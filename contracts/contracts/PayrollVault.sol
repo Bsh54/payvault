@@ -2,6 +2,7 @@
 pragma solidity ^0.8.27;
 
 import {Nox, euint256, externalEuint256} from "@iexec-nox/nox-protocol-contracts/contracts/sdk/Nox.sol";
+import {ERC7984} from "@iexec-nox/nox-confidential-contracts/contracts/token/ERC7984.sol";
 
 /// @title PayrollVault (multi-tenant)
 /// @notice Confidential payroll registry built on Nox. Any wallet is automatically
@@ -12,7 +13,12 @@ import {Nox, euint256, externalEuint256} from "@iexec-nox/nox-protocol-contracts
 ///         salaries (selective disclosure).
 /// @dev    Underlying public protocols (Safe treasury / Sablier funding) are never
 ///         modified: this contract layers confidentiality on top of them.
-contract PayrollVault {
+contract PayrollVault is ERC7984 {
+    // PayrollVault is itself an ERC-7984 confidential token ("cPAY"): running
+    // payroll mints a confidential balance (= the employee's salary) to each
+    // employee. Balances are encrypted; only the holder can decrypt their pay.
+    constructor() ERC7984("PayVault Confidential Pay", "cPAY", "") {}
+
     // company => has its total been initialized as an encrypted zero?
     mapping(address => bool) private _initialized;
     // company => encrypted sum of all its salaries
@@ -38,6 +44,7 @@ contract PayrollVault {
     event AuditorGranted(address indexed company, address indexed auditor);
     event AuditorRevoked(address indexed company, address indexed auditor);
     event FundingLinked(address indexed company, uint256 streamId, uint256 publicAmount);
+    event PayrollRun(address indexed company, uint256 employeeCount);
 
     function _ensureInit(address company) private {
         if (!_initialized[company]) {
@@ -121,6 +128,22 @@ contract PayrollVault {
     function revokeAuditor(address auditor) external {
         isAuditor[msg.sender][auditor] = false;
         emit AuditorRevoked(msg.sender, auditor);
+    }
+
+    /// @notice Run payroll: pay every employee their (encrypted) salary as a
+    ///         confidential cPAY balance. Amounts stay hidden on-chain; only each
+    ///         employee (and the ACL) can decrypt their own received pay.
+    /// @dev    Same-contract mint reuses the stored salary handle (already
+    ///         `allowThis`-ed), so no cross-contract handle sharing is needed.
+    function runPayroll() external {
+        address company = msg.sender;
+        require(_initialized[company], "PayrollVault: no payroll yet");
+        address[] storage list = _employees[company];
+        for (uint256 i = 0; i < list.length; i++) {
+            address emp = list[i];
+            _mint(emp, _salary[company][emp]);
+        }
+        emit PayrollRun(company, list.length);
     }
 
     /// @notice Record the public Sablier stream that funds this company's payroll.

@@ -28,3 +28,7 @@ coverage.json
 Thumbs.db
 .vscode/
 .idea/
+
+# relay wallet (throwaway)
+contracts/.relay
+.relay
