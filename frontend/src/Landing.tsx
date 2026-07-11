@@ -30,15 +30,14 @@ export function Landing({ onStart }: { onStart: () => void }) {
       {/* Hero — split: copy left, live visual right */}
       <section className="lp-hero">
         <div className="lp-hero-copy">
-          <span className="eyebrow fade-up">Confidential payroll · Nox · Ethereum</span>
           <h1 className="fade-up d1">
-            Pay your team on-chain.
+            Pay your team without
             <br />
-            <span className="grad-text">Salaries stay secret.</span>
+            <span className="grad-text">exposing salaries.</span>
           </h1>
           <p className="lp-sub fade-up d2">
-            PayVault encrypts every salary with Nox — verifiable by an auditor,
-            invisible to everyone else.
+            PayVault keeps every wage private on the blockchain — while your
+            auditor can still verify the totals. No spreadsheets, no leaks.
           </p>
           <div className="lp-cta-row fade-up d3">
             <button className="lp-btn lp-btn-primary lp-btn-lg" onClick={onStart}>
@@ -100,29 +99,28 @@ export function Landing({ onStart }: { onStart: () => void }) {
       {/* How it works — vertical timeline (distinct layout family) */}
       <section className="lp-how" id="how">
         <div className="lp-section-head">
-          <span className="eyebrow">How it works</span>
-          <h2>Confidential payroll, end to end</h2>
+          <h2>Three steps. Zero salaries leaked.</h2>
         </div>
         <div className="lp-timeline">
           <div className="lp-tl-item">
             <span className="lp-tl-icon"><Money size={22} weight="duotone" /></span>
             <div>
-              <h3>Funding</h3>
-              <p>The company funds a vault with a <strong>public Sablier stream</strong> — only the aggregate total is visible.</p>
+              <h3>Fund your payroll</h3>
+              <p>Top up your vault with your monthly budget. The public chain shows <strong>one total</strong> — never who gets what.</p>
             </div>
           </div>
           <div className="lp-tl-item">
             <span className="lp-tl-icon"><LockKey size={22} weight="duotone" /></span>
             <div>
-              <h3>Encrypted salaries</h3>
-              <p>Each salary is <strong>encrypted with Nox</strong> inside a TEE. Amounts are never exposed on-chain.</p>
+              <h3>Set salaries privately</h3>
+              <p>Each amount is <strong>encrypted the moment you enter it</strong>. Nobody can read the numbers on-chain.</p>
             </div>
           </div>
           <div className="lp-tl-item">
             <span className="lp-tl-icon"><SealCheck size={22} weight="duotone" /></span>
             <div>
-              <h3>Confidential payout</h3>
-              <p>Employees receive a <strong>confidential balance (cPAY)</strong>. Each one sees only their own pay.</p>
+              <h3>Your team gets paid</h3>
+              <p>Employees receive their pay privately. <strong>Each person sees only their own amount</strong> — no one else's.</p>
             </div>
           </div>
         </div>
@@ -132,10 +130,10 @@ export function Landing({ onStart }: { onStart: () => void }) {
       <section className="lp-feature">
         <span className="lp-feature-icon"><Faders size={26} weight="duotone" /></span>
         <div>
-          <h2>Confidential, yet auditable</h2>
+          <h2>Private for your team. Clear for your auditor.</h2>
           <p>
-            The company can let an auditor verify the <strong>total payroll</strong> without
-            ever accessing an individual salary. Privacy <em>and</em> compliance, together.
+            Give your auditor read-access to the <strong>total payroll</strong> — never to
+            individual salaries. Privacy <em>and</em> compliance, finally together.
           </p>
         </div>
       </section>
@@ -156,8 +154,8 @@ export function Landing({ onStart }: { onStart: () => void }) {
 
       {/* Final CTA */}
       <section className="lp-final">
-        <h2>Create your company space.</h2>
-        <p>Connect your wallet — no password, no exposed data.</p>
+        <h2>Start paying your team privately.</h2>
+        <p>Connect your wallet — no password, no exposed data. Free on Ethereum testnet.</p>
         <button className="lp-btn lp-btn-primary lp-btn-lg" onClick={onStart}>
           Get started <ArrowRight size={18} weight="bold" />
         </button>
