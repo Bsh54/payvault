@@ -54,7 +54,7 @@ function short(a?: string) {
 
 export function App() {
   const { address } = useAccount();
-  const [section, setSection] = useState<Section>("payroll");
+  const [section, setSection] = useState<Section>("funding");
   const routeFromHash = (): "landing" | "app" | "verify" => {
     const h = window.location.hash;
     if (h.includes("app")) return "app";
@@ -137,8 +137,8 @@ export function App() {
 
         <nav className="side-nav">
           <div className="side-group">Company</div>
-          <NavItem id="payroll" icon={<Buildings size={18} weight="bold" />} />
           <NavItem id="funding" icon={<Money size={18} weight="bold" />} />
+          <NavItem id="payroll" icon={<Buildings size={18} weight="bold" />} />
           <NavItem id="auditors" icon={<MagnifyingGlass size={18} weight="bold" />} />
 
           <div className="side-group">Employee</div>
