@@ -143,7 +143,8 @@ function CompanyPanel({
 
   async function addEmployee() {
     setStatus("");
-    if (!isAddress(emp)) return setStatus("❌ Invalid employee address");
+    if (!isAddress(emp, { strict: false }))
+      return setStatus("❌ Invalid employee address (need 0x + 40 hex chars)");
     let amount: bigint;
     try {
       amount = BigInt(salary);
@@ -211,7 +212,8 @@ function CompanyPanel({
 
   async function grantAuditor() {
     setStatus("");
-    if (!isAddress(auditor)) return setStatus("❌ Invalid auditor address");
+    if (!isAddress(auditor, { strict: false }))
+      return setStatus("❌ Invalid auditor address (need 0x + 40 hex chars)");
     setBusy(true);
     try {
       setStatus("⛓️ Granting auditor access to the aggregate…");
@@ -315,7 +317,8 @@ function PublicPanel({ defaultCompany }: { defaultCompany?: Address }) {
 
   async function look() {
     setStatus("");
-    if (!isAddress(company)) return setStatus("❌ Invalid company address");
+    if (!isAddress(company, { strict: false }))
+      return setStatus("❌ Invalid company address (need 0x + 40 hex chars)");
     try {
       const c = vaultContract(company as Address);
       const n = (await c.read.employeeCount([company as Address])) as bigint;
@@ -414,7 +417,8 @@ function AuditorPanel({
 
   async function decryptAggregate() {
     setStatus("");
-    if (!isAddress(company)) return setStatus("❌ Invalid company address");
+    if (!isAddress(company, { strict: false }))
+      return setStatus("❌ Invalid company address (need 0x + 40 hex chars)");
     setBusy(true);
     setStatus("🔓 Decrypting the aggregate payroll…");
     try {
