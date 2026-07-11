@@ -69,7 +69,7 @@ export function App() {
       </header>
 
       <section className="hero">
-        <h1>Pay your team on-chain — salaries stay secret.</h1>
+        <h1>Pay your team on-chain. Salaries stay secret.</h1>
         <p>
           Salaries are encrypted end-to-end with{" "}
           <a href="https://docs.noxprotocol.io" target="_blank">
@@ -231,7 +231,7 @@ function CompanyPanel({
     try {
       const tx = await sendVaultTx(account!, "runPayroll", []);
       await publicClient().waitForTransactionReceipt({ hash: tx });
-      setStatus("✅ Payroll run. Each employee received an encrypted cPAY balance — amounts stay secret.");
+      setStatus("✅ Payroll run. Each employee received an encrypted cPAY balance. Amounts stay secret.");
     } catch (e: any) {
       setStatus("❌ " + (e.shortMessage || e.message || String(e)));
     } finally {
@@ -248,7 +248,7 @@ function CompanyPanel({
       setStatus("⛓️ Granting auditor access to the aggregate…");
       const tx = await sendVaultTx(account!, "grantAuditor", [auditor as Address]);
       await publicClient().waitForTransactionReceipt({ hash: tx });
-      setStatus(`✅ Auditor ${short(auditor)} can now verify the total — not individual salaries.`);
+      setStatus(`✅ Auditor ${short(auditor)} can now verify the total, not individual salaries.`);
       setAuditor("");
     } catch (e: any) {
       setStatus("❌ " + (e.shortMessage || e.message || String(e)));
@@ -278,7 +278,7 @@ function CompanyPanel({
         <h3>Grant an auditor</h3>
         <p className="muted">
           The auditor will be able to decrypt the <strong>aggregate</strong>{" "}
-          payroll only — never individual salaries.
+          payroll only, never individual salaries.
         </p>
         <label>Auditor wallet</label>
         <input placeholder="0x…" value={auditor} onChange={(e) => setAuditor(e.target.value)} />
@@ -372,7 +372,7 @@ function PublicPanel({ defaultCompany }: { defaultCompany?: Address }) {
       <h3>What the public sees</h3>
       <p className="muted">
         Anyone can read the chain. Here is <em>everything</em> a public observer
-        learns about a company's payroll — notice there are <strong>no amounts</strong>.
+        learns about a company's payroll. Notice there are <strong>no amounts</strong>.
       </p>
       <label>Company wallet</label>
       <div className="row">
@@ -415,7 +415,7 @@ function PublicPanel({ defaultCompany }: { defaultCompany?: Address }) {
       )}
       {count !== null && (
         <p className="muted" style={{ marginTop: 12 }}>
-          The public sees a single Sablier lump sum funding the vault — never who
+          The public sees a single Sablier lump sum funding the vault, never who
           gets what. That confidential split is enforced by Nox.
         </p>
       )}
@@ -426,12 +426,12 @@ function PublicPanel({ defaultCompany }: { defaultCompany?: Address }) {
           <a className="ba-card before" href={`${EXPLORER}/tx/${DEMO_PUBLIC_TX}`} target="_blank">
             <span className="ba-tag">🔴 Normal payment</span>
             <span className="ba-amt">5,000 visible</span>
-            <span className="ba-note">A plain transfer — anyone reads the amount.</span>
+            <span className="ba-note">A plain transfer. Anyone reads the amount.</span>
           </a>
           <a className="ba-card after" href={`${EXPLORER}/tx/${DEMO_CONFIDENTIAL_TX}`} target="_blank">
             <span className="ba-tag">🟢 With PayVault</span>
             <span className="ba-amt">🔒 encrypted</span>
-            <span className="ba-note">Same operation — the salary is an unreadable handle.</span>
+            <span className="ba-note">Same operation. The salary is an unreadable handle.</span>
           </a>
         </div>
       </div>
@@ -480,9 +480,9 @@ function AuditorPanel({
       }
       const v = await decryptWithRetry(account!, handle);
       setTotal(v.toString());
-      setStatus("✅ Verified. You saw the total — never an individual salary.");
+      setStatus("✅ Verified. You saw the total, never an individual salary.");
     } catch (e: any) {
-      setStatus("🔒 Access denied — this company has not granted you access.");
+      setStatus("🔒 Access denied. This company has not granted you access.");
     } finally {
       setBusy(false);
     }
@@ -490,7 +490,7 @@ function AuditorPanel({
 
   return (
     <div className="card">
-      <h3>Auditor — verify the aggregate</h3>
+      <h3>Auditor verification</h3>
       <p className="muted">
         Connected as <span className="mono">{short(account)}</span>. Enter a
         company you were granted access to and decrypt its total payroll. You can
@@ -564,7 +564,7 @@ function EmployeePanel({
       <h3>My confidential pay</h3>
       <p className="muted">
         Connected as <span className="mono">{short(account)}</span>. Your received
-        pay is held as a confidential <strong>cPAY</strong> balance (ERC-7984) —
+        pay is held as a confidential <strong>cPAY</strong> balance (ERC-7984),
         encrypted on-chain. Only you can decrypt it.
       </p>
       <button className="btn" disabled={busy} onClick={decryptPay}>

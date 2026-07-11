@@ -9,7 +9,7 @@ import {
   Money,
   CheckCircle,
 } from "@phosphor-icons/react";
-import { EXPLORER, DEMO_PUBLIC_TX, DEMO_CONFIDENTIAL_TX } from "./lib/payvault";
+import { EXPLORER, DEMO_PUBLIC_TX, DEMO_CONFIDENTIAL_TX, PAYROLL_VAULT_ADDRESS } from "./lib/payvault";
 
 export function Landing({ onStart }: { onStart: () => void }) {
   return (
@@ -36,8 +36,8 @@ export function Landing({ onStart }: { onStart: () => void }) {
             <span className="grad-text">exposing salaries.</span>
           </h1>
           <p className="lp-sub fade-up d2">
-            PayVault keeps every wage private on the blockchain — while your
-            auditor can still verify the totals. No spreadsheets, no leaks.
+            PayVault keeps every wage private on the blockchain. Your auditor can
+            still verify the totals. No spreadsheets, no leaks.
           </p>
           <div className="lp-cta-row fade-up d3">
             <button className="lp-btn lp-btn-primary lp-btn-lg" onClick={onStart}>
@@ -106,21 +106,21 @@ export function Landing({ onStart }: { onStart: () => void }) {
             <span className="lp-tl-icon"><Money size={22} weight="duotone" /></span>
             <div>
               <h3>Fund your payroll</h3>
-              <p>Top up your vault with your monthly budget. The public chain shows <strong>one total</strong> — never who gets what.</p>
+              <p>Top up your vault with your monthly budget. The public chain shows <strong>one total</strong>, never who gets what.</p>
             </div>
           </div>
           <div className="lp-tl-item">
             <span className="lp-tl-icon"><LockKey size={22} weight="duotone" /></span>
             <div>
               <h3>Set salaries privately</h3>
-              <p>Each amount is <strong>encrypted the moment you enter it</strong>. Nobody can read the numbers on-chain.</p>
+              <p>Each amount is <strong>encrypted the moment you enter it</strong>. Nobody can read the numbers on the public chain.</p>
             </div>
           </div>
           <div className="lp-tl-item">
             <span className="lp-tl-icon"><SealCheck size={22} weight="duotone" /></span>
             <div>
               <h3>Your team gets paid</h3>
-              <p>Employees receive their pay privately. <strong>Each person sees only their own amount</strong> — no one else's.</p>
+              <p>Employees receive their pay privately. <strong>Each person sees only their own amount</strong>, and no one else's.</p>
             </div>
           </div>
         </div>
@@ -132,37 +132,68 @@ export function Landing({ onStart }: { onStart: () => void }) {
         <div>
           <h2>Private for your team. Clear for your auditor.</h2>
           <p>
-            Give your auditor read-access to the <strong>total payroll</strong> — never to
+            Give your auditor read access to the <strong>total payroll</strong>, never to
             individual salaries. Privacy <em>and</em> compliance, finally together.
           </p>
         </div>
       </section>
 
-      {/* Trust signals */}
+      {/* Built with — logo chips */}
       <section className="lp-trust">
         <span>Built with</span>
         <div className="lp-trust-logos">
-          <span>
-            <img src="https://cdn.simpleicons.org/ethereum/9FB0C9" width={16} height={16} alt="Ethereum" />
+          <span className="lp-logo-chip">
+            <img src="https://cdn.simpleicons.org/ethereum/EAF0FA" width={18} height={18} alt="Ethereum" />
             Ethereum
           </span>
-          <span>iExec · Nox</span>
-          <span>Sablier</span>
-          <span>Open-source</span>
+          <span className="lp-logo-chip">
+            <img src="https://cdn.simpleicons.org/solidity/EAF0FA" width={18} height={18} alt="Solidity" />
+            Solidity
+          </span>
+          <span className="lp-logo-chip">
+            <span className="lp-logo-monogram" style={{ background: "linear-gradient(135deg,#FFD54A,#FF9F1C)" }}>iX</span>
+            iExec · Nox
+          </span>
+          <span className="lp-logo-chip">
+            <span className="lp-logo-monogram" style={{ background: "linear-gradient(135deg,#F97362,#F04E37)" }}>S</span>
+            Sablier
+          </span>
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="lp-final">
-        <h2>Start paying your team privately.</h2>
-        <p>Connect your wallet — no password, no exposed data. Free on Ethereum testnet.</p>
-        <button className="lp-btn lp-btn-primary lp-btn-lg" onClick={onStart}>
-          Get started <ArrowRight size={18} weight="bold" />
-        </button>
-      </section>
-
+      {/* Classic footer */}
       <footer className="lp-footer">
-        <span>PayVault · iExec WTF Hackathon · deployed on ETH Sepolia</span>
+        <div className="lp-footer-top">
+          <div className="lp-footer-brand">
+            <div className="lp-brand">
+              <span className="lp-logo-mark"><ShieldCheck weight="fill" size={19} /></span>
+              <span>PayVault</span>
+            </div>
+            <p>Confidential payroll on Ethereum. Pay your team without exposing salaries.</p>
+          </div>
+          <div className="lp-footer-cols">
+            <div className="lp-footer-col">
+              <h4>Product</h4>
+              <a href="#how">How it works</a>
+              <button className="lp-footer-link" onClick={onStart}>Open the app</button>
+            </div>
+            <div className="lp-footer-col">
+              <h4>Resources</h4>
+              <a href="https://github.com/Bsh54/payvault" target="_blank" rel="noreferrer">GitHub</a>
+              <a href={`${EXPLORER}/address/${PAYROLL_VAULT_ADDRESS}`} target="_blank" rel="noreferrer">Smart contract</a>
+              <a href="https://docs.noxprotocol.io" target="_blank" rel="noreferrer">Nox docs</a>
+            </div>
+            <div className="lp-footer-col">
+              <h4>Network</h4>
+              <a href={EXPLORER} target="_blank" rel="noreferrer">Ethereum Sepolia</a>
+              <span className="lp-footer-note">Testnet · free to try</span>
+            </div>
+          </div>
+        </div>
+        <div className="lp-footer-bottom">
+          <span>© 2026 PayVault</span>
+          <span>Built for the iExec WTF Hackathon</span>
+        </div>
       </footer>
     </div>
   );

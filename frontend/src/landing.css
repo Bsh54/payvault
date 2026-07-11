@@ -158,18 +158,37 @@
 .lp-feature p { color: var(--text-2); line-height: 1.6; margin: 0; }
 .lp-feature em { color: var(--text); font-style: normal; font-weight: 700; }
 
-/* Trust */
-.lp-trust { max-width: 900px; margin: 0 auto; padding: 44px 24px; text-align: center; }
-.lp-trust > span { display: block; color: var(--text-3); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 700; margin-bottom: 18px; }
-.lp-trust-logos { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; color: var(--text-2); font-weight: 600; }
-.lp-trust-logos span { display: inline-flex; align-items: center; gap: 6px; }
+/* Built with — logo chips */
+.lp-trust { max-width: 900px; margin: 0 auto; padding: 56px 24px; text-align: center; }
+.lp-trust > span { display: block; color: var(--text-3); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 700; margin-bottom: 22px; }
+.lp-trust-logos { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.lp-logo-chip {
+  display: inline-flex; align-items: center; gap: 9px; color: var(--text-2); font-weight: 600; font-size: 0.92rem;
+  background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 12px; padding: 9px 15px;
+}
+.lp-logo-monogram { width: 20px; height: 20px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: #1a0f08; }
 
-/* Final CTA */
-.lp-final { max-width: 720px; margin: 24px auto 0; padding: 64px 24px; text-align: center; }
-.lp-final h2 { font-size: clamp(1.9rem, 4vw, 2.6rem); letter-spacing: -0.03em; font-weight: 700; margin: 0 0 14px; }
-.lp-final p { color: var(--text-2); font-size: 1.08rem; margin: 0 0 28px; }
-
-.lp-footer { text-align: center; color: var(--text-3); font-size: 0.82rem; padding: 40px 24px; border-top: 1px solid var(--border-soft); }
+/* Classic footer */
+.lp-footer { border-top: 1px solid var(--border-soft); margin-top: 24px; background: rgba(7,11,22,0.5); }
+.lp-footer-top {
+  max-width: 1120px; margin: 0 auto; padding: 56px 24px 40px;
+  display: grid; grid-template-columns: 1.3fr 2fr; gap: 40px;
+}
+.lp-footer-brand .lp-brand { margin-bottom: 14px; }
+.lp-footer-brand p { color: var(--text-2); font-size: 0.92rem; line-height: 1.6; max-width: 34ch; }
+.lp-footer-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.lp-footer-col { display: flex; flex-direction: column; gap: 10px; }
+.lp-footer-col h4 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); font-weight: 700; margin: 0 0 4px; }
+.lp-footer-col a, .lp-footer-link {
+  color: var(--text-2); font-size: 0.92rem; text-decoration: none; background: none; border: none; padding: 0;
+  text-align: left; cursor: pointer; font-family: var(--lp-font); transition: color 0.15s;
+}
+.lp-footer-col a:hover, .lp-footer-link:hover { color: var(--green-2); }
+.lp-footer-note { color: var(--text-3); font-size: 0.82rem; }
+.lp-footer-bottom {
+  max-width: 1120px; margin: 0 auto; padding: 20px 24px; border-top: 1px solid var(--border-soft);
+  display: flex; align-items: center; justify-content: space-between; color: var(--text-3); font-size: 0.82rem;
+}
 
 button:focus-visible, a:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; border-radius: 6px; }
 @media (max-width: 860px) {
@@ -182,6 +201,9 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--primary); outli
   .lp-ba { grid-template-columns: 1fr; }
   .lp-ba-arrow { transform: rotate(90deg); }
   .lp-feature { flex-direction: column; text-align: center; }
+  .lp-footer-top { grid-template-columns: 1fr; gap: 28px; }
+  .lp-footer-cols { grid-template-columns: 1fr 1fr; }
+  .lp-footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
 }
 @media (prefers-reduced-motion: reduce) {
   .lp *, .lp *::before, .lp *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
