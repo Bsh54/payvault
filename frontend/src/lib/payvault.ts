@@ -129,4 +129,46 @@ export const PAYROLL_VAULT_ABI = [
     inputs: [{ name: "account", type: "address" }],
     outputs: [{ type: "bytes32" }],
   },
+  {
+    type: "function",
+    name: "linkFunding",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "streamId", type: "uint256" },
+      { name: "publicAmount", type: "uint256" },
+    ],
+    outputs: [],
+  },
+] as const;
+
+export const PAYUSD_ABI = [
+  { type: "function", name: "mint", stateMutability: "nonpayable", inputs: [{ name: "to", type: "address" }, { name: "amount", type: "uint256" }], outputs: [] },
+  { type: "function", name: "approve", stateMutability: "nonpayable", inputs: [{ name: "spender", type: "address" }, { name: "amount", type: "uint256" }], outputs: [{ type: "bool" }] },
+] as const;
+
+export const SABLIER_ABI = [
+  { type: "function", name: "nextStreamId", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  {
+    type: "function",
+    name: "createWithDurationsLL",
+    stateMutability: "payable",
+    inputs: [
+      {
+        name: "params", type: "tuple",
+        components: [
+          { name: "sender", type: "address" },
+          { name: "recipient", type: "address" },
+          { name: "depositAmount", type: "uint128" },
+          { name: "token", type: "address" },
+          { name: "cancelable", type: "bool" },
+          { name: "transferable", type: "bool" },
+          { name: "shape", type: "string" },
+        ],
+      },
+      { name: "unlockAmounts", type: "tuple", components: [{ name: "start", type: "uint128" }, { name: "cliff", type: "uint128" }] },
+      { name: "granularity", type: "uint40" },
+      { name: "durations", type: "tuple", components: [{ name: "cliff", type: "uint40" }, { name: "total", type: "uint40" }] },
+    ],
+    outputs: [{ name: "streamId", type: "uint256" }],
+  },
 ] as const;

@@ -54,6 +54,23 @@ export async function sendVaultTx(
   return hash;
 }
 
+/** Encode + send a call to any contract via the connected wallet. */
+export async function sendTo(
+  walletClient: WalletClient,
+  to: `0x${string}`,
+  abi: any,
+  functionName: string,
+  args: readonly unknown[],
+): Promise<`0x${string}`> {
+  const data = encodeFunctionData({ abi, functionName: functionName as any, args: args as any });
+  return walletClient.sendTransaction({
+    account: walletClient.account!,
+    chain: CHAIN,
+    to,
+    data,
+  });
+}
+
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** Decrypt a handle, retrying while the off-chain TEE computes the result. */

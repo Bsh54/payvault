@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { isAddress, formatUnits, type Address } from "viem";
+import { isAddress, formatUnits, parseUnits, type Address } from "viem";
 import { useAccount, useWalletClient } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
@@ -23,10 +23,15 @@ import {
   decryptWithRetry,
   publicClient,
   sendVaultTx,
+  sendTo,
   ZERO_HANDLE,
 } from "./lib/wallet";
 import {
   PAYROLL_VAULT_ADDRESS,
+  PAYUSD_ADDRESS,
+  SABLIER_ADDRESS,
+  PAYUSD_ABI,
+  SABLIER_ABI,
   EXPLORER,
   DEMO_PUBLIC_TX,
   DEMO_CONFIDENTIAL_TX,
@@ -426,61 +431,124 @@ function PayrollPanel() {
 
 function FundingPanel() {
   const { address } = useAccount();
+  const { data: walletClient } = useWalletClient();
   const [streamId, setStreamId] = useState<bigint>(0n);
   const [budget, setBudget] = useState<bigint>(0n);
-  const [loaded, setLoaded] = useState(false);
+  const [amount, setAmount] = useState("120000");
+  const [status, setStatus] = useState("");
+  const [busy, setBusy] = useState(false);
 
+  async function refresh() {
+    if (!address) return;
+    try {
+      const c = readVault();
+      setStreamId((await c.read.sablierStreamId([address])) as bigint);
+      setBudget((await c.read.publicBudget([address])) as bigint);
+    } catch {
+      /* ignore */
+    }
+  }
   useEffect(() => {
-    (async () => {
-      if (!address) return;
-      try {
-        const c = readVault();
-        setStreamId((await c.read.sablierStreamId([address])) as bigint);
-        setBudget((await c.read.publicBudget([address])) as bigint);
-      } catch {
-        /* ignore */
-      } finally {
-        setLoaded(true);
-      }
-    })();
+    refresh();
   }, [address]);
 
   if (!address)
     return (
       <div className="card center">
-        <p>Connect your wallet to see your funding.</p>
+        <p>Connect your wallet to fund your payroll.</p>
         <ConnectButton />
       </div>
     );
 
+  async function fund() {
+    setStatus("");
+    let value: bigint;
+    try {
+      value = parseUnits(amount || "0", 18);
+      if (value <= 0n) throw new Error();
+    } catch {
+      return setStatus("❌ Enter a positive budget amount");
+    }
+    if (!walletClient) return setStatus("❌ Wallet not ready");
+    const wait = async (p: Promise<`0x${string}`>) => {
+      const h = await p;
+      await publicClient().waitForTransactionReceipt({ hash: h });
+      return h;
+    };
+    setBusy(true);
+    try {
+      setStatus("1/4 · Minting PayUSD budget…");
+      await wait(sendTo(walletClient, PAYUSD_ADDRESS, PAYUSD_ABI, "mint", [address!, value]));
+
+      setStatus("2/4 · Approving Sablier…");
+      await wait(sendTo(walletClient, PAYUSD_ADDRESS, PAYUSD_ABI, "approve", [SABLIER_ADDRESS, value]));
+
+      setStatus("3/4 · Creating public Sablier stream…");
+      const nextId = (await publicClient().readContract({
+        address: SABLIER_ADDRESS, abi: SABLIER_ABI, functionName: "nextStreamId",
+      })) as bigint;
+      const params = {
+        sender: address!, recipient: PAYROLL_VAULT_ADDRESS, depositAmount: value,
+        token: PAYUSD_ADDRESS, cancelable: true, transferable: true, shape: "PayVault confidential payroll",
+      };
+      await wait(sendTo(walletClient, SABLIER_ADDRESS, SABLIER_ABI, "createWithDurationsLL", [
+        params, { start: 0n, cliff: 0n }, 0, { cliff: 0, total: 30 * 24 * 60 * 60 },
+      ]));
+
+      setStatus("4/4 · Linking funding to your vault…");
+      await wait(sendVaultTx(walletClient, "linkFunding", [nextId, value]));
+
+      setStatus("✅ Payroll funded. The public sees the total; the split stays encrypted.");
+      refresh();
+    } catch (e: any) {
+      setStatus("❌ " + (e.shortMessage || e.message || String(e)));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
-    <div className="card">
-      <h3>Public funding (Sablier)</h3>
-      <p className="muted">
-        Your payroll is funded by a single <strong>public</strong> Sablier stream. The chain shows
-        only this aggregate amount, never the per-employee split, which stays encrypted in Nox.
-      </p>
-      {!loaded ? (
-        <p className="muted">Loading…</p>
-      ) : streamId > 0n ? (
-        <div className="public-out">
-          <div className="stat">
-            <span className="big">#{streamId.toString()}</span>
-            <span>Sablier stream</span>
+    <>
+      <div className="card">
+        <h3>Public funding (Sablier)</h3>
+        <p className="muted">
+          Fund your payroll with one <strong>public</strong> Sablier stream. The chain shows only
+          this aggregate budget, never the per-employee split, which stays encrypted in Nox.
+        </p>
+        {streamId > 0n ? (
+          <div className="public-out">
+            <div className="stat">
+              <span className="big">#{streamId.toString()}</span>
+              <span>Sablier stream</span>
+            </div>
+            <div className="stat">
+              <span className="big">{formatUnits(budget, 18)}</span>
+              <span>PayUSD budget (public)</span>
+            </div>
+            <div className="stat">
+              <span className="big">Hidden</span>
+              <span>per-employee split</span>
+            </div>
           </div>
-          <div className="stat">
-            <span className="big">{formatUnits(budget, 18)}</span>
-            <span>PayUSD budget (public)</span>
-          </div>
-          <div className="stat">
-            <span className="big">Hidden</span>
-            <span>per-employee split</span>
-          </div>
-        </div>
-      ) : (
-        <p className="muted">No funding stream linked yet for this wallet.</p>
-      )}
-    </div>
+        ) : (
+          <p className="muted">No funding stream yet. Create one below.</p>
+        )}
+      </div>
+
+      <div className="card">
+        <h3>Fund payroll</h3>
+        <label>Budget (PayUSD)</label>
+        <input placeholder="e.g. 120000" value={amount} onChange={(e) => setAmount(e.target.value)} />
+        <p className="muted" style={{ marginTop: 10 }}>
+          This runs 4 quick steps: mint test PayUSD, approve Sablier, create the public stream to your
+          vault, and record it. Confirm each in your wallet.
+        </p>
+        <button className="btn" disabled={busy} onClick={fund}>
+          <Money size={17} weight="bold" /> Fund payroll
+        </button>
+        {status && <div className="status">{status}</div>}
+      </div>
+    </>
   );
 }
 
