@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import type { Address } from "viem";
+import { useAccount } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 import {
   ShieldCheck,
   Wallet,
@@ -7,6 +8,7 @@ import {
   Buildings,
   CheckCircle,
   ArrowLeft,
+  LockKey,
 } from "@phosphor-icons/react";
 
 function short(a?: string) {
@@ -14,88 +16,96 @@ function short(a?: string) {
 }
 
 export function Auth({
-  account,
-  onConnect,
   onEnter,
   onBack,
 }: {
-  account?: Address;
-  onConnect: () => void;
   onEnter: (companyName: string) => void;
   onBack: () => void;
 }) {
+  const { address } = useAccount();
+  const { openConnectModal } = useConnectModal();
   const [name, setName] = useState("");
-  const [busy, setBusy] = useState(false);
 
-  // Prefill company name if this wallet already onboarded.
   useEffect(() => {
-    if (account) {
-      const saved = localStorage.getItem(`payvault:company:${account.toLowerCase()}`);
+    if (address) {
+      const saved = localStorage.getItem(`payvault:company:${address.toLowerCase()}`);
       if (saved) setName(saved);
     }
-  }, [account]);
-
-  async function connect() {
-    setBusy(true);
-    try {
-      await onConnect();
-    } finally {
-      setBusy(false);
-    }
-  }
+  }, [address]);
 
   function enter(companyName: string) {
-    if (account && companyName.trim()) {
-      localStorage.setItem(`payvault:company:${account.toLowerCase()}`, companyName.trim());
+    if (address && companyName.trim()) {
+      localStorage.setItem(`payvault:company:${address.toLowerCase()}`, companyName.trim());
     }
     onEnter(companyName.trim());
   }
 
   return (
-    <div className="lp auth">
-      <button className="auth-back" onClick={onBack}>
-        <ArrowLeft size={16} weight="bold" /> Back
-      </button>
-
-      <div className="auth-card lp-card fade-up">
-        <div className="lp-brand auth-brand">
-          <span className="lp-logo-mark"><ShieldCheck weight="fill" size={19} /></span>
-          <span>PayVault</span>
+    <div className="lp auth-split">
+      {/* Left — brand / product preview */}
+      <div className="auth-left">
+        <button className="auth-back" onClick={onBack}>
+          <ArrowLeft size={16} weight="bold" /> Back
+        </button>
+        <div className="auth-left-inner">
+          <div className="lp-brand">
+            <span className="lp-logo-mark"><ShieldCheck weight="fill" size={19} /></span>
+            <span>PayVault</span>
+          </div>
+          <h2>Confidential payroll on Ethereum.</h2>
+          <div className="lp-payslip lp-card auth-preview">
+            <div className="lp-payslip-head">
+              <span>Payroll · March</span>
+              <span className="lp-payslip-badge"><LockKey size={13} weight="fill" /> Encrypted</span>
+            </div>
+            <div className="lp-payslip-row"><span className="mono">0x8BEE…9288</span><span className="lp-enc"><LockKey size={13} /> ••• •••</span></div>
+            <div className="lp-payslip-row"><span className="mono">0x06Ef…bDf9</span><span className="lp-enc"><LockKey size={13} /> ••• •••</span></div>
+            <div className="lp-payslip-foot"><span><CheckCircle size={15} weight="fill" /> Auditor can verify the total</span></div>
+          </div>
         </div>
+      </div>
 
-        {!account ? (
-          <>
-            <h1>Sign in to your company space</h1>
-            <button className="lp-btn lp-btn-primary lp-btn-lg auth-connect" disabled={busy} onClick={connect}>
-              <Wallet size={18} weight="bold" /> Connect wallet
-            </button>
-          </>
-        ) : (
-          <>
-            <span className="auth-connected"><CheckCircle size={15} weight="fill" /> Connected {short(account)}</span>
-            <h1>Name your company</h1>
-            <label className="auth-label">Company name</label>
-            <div className="auth-input-wrap">
-              <Buildings size={18} />
-              <input
-                autoFocus
-                placeholder="e.g. Acme Labs"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && enter(name)}
-              />
-            </div>
+      {/* Right — the action */}
+      <div className="auth-right">
+        <div className="auth-card">
+          <div className="lp-brand auth-brand-mobile">
+            <span className="lp-logo-mark"><ShieldCheck weight="fill" size={19} /></span>
+            <span>PayVault</span>
+          </div>
 
-            <div className="auth-actions">
-              <button className="lp-btn lp-btn-primary lp-btn-lg" onClick={() => enter(name)}>
-                Continue <ArrowRight size={18} weight="bold" />
+          {!address ? (
+            <>
+              <h1>Sign in to your company space</h1>
+              <button className="lp-btn lp-btn-primary lp-btn-lg auth-connect" onClick={openConnectModal}>
+                <Wallet size={18} weight="bold" /> Connect wallet
               </button>
-              <button className="lp-btn lp-btn-ghost lp-btn-lg" onClick={() => enter("")}>
-                Skip
-              </button>
-            </div>
-          </>
-        )}
+            </>
+          ) : (
+            <>
+              <span className="auth-connected"><CheckCircle size={15} weight="fill" /> Connected {short(address)}</span>
+              <h1>Name your company</h1>
+              <label className="auth-label">Company name</label>
+              <div className="auth-input-wrap">
+                <Buildings size={18} />
+                <input
+                  autoFocus
+                  placeholder="e.g. Acme Labs"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && enter(name)}
+                />
+              </div>
+              <div className="auth-actions">
+                <button className="lp-btn lp-btn-primary lp-btn-lg" onClick={() => enter(name)}>
+                  Continue <ArrowRight size={18} weight="bold" />
+                </button>
+                <button className="lp-btn lp-btn-ghost lp-btn-lg" onClick={() => enter("")}>
+                  Skip
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

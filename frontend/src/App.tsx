@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { isAddress, formatUnits, type Address } from "viem";
+import { useAccount, useWalletClient } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
-  connectWallet,
-  hasWallet,
-  vaultContract,
+  readVault,
   handleClient,
   decryptWithRetry,
   publicClient,
@@ -26,29 +26,17 @@ function short(a?: string) {
 }
 
 export function App() {
-  const [account, setAccount] = useState<Address | undefined>();
+  const { address } = useAccount();
   const [tab, setTab] = useState<Tab>("company");
-  const [err, setErr] = useState<string>("");
   const [view, setView] = useState<"landing" | "auth" | "app">("landing");
   const [company, setCompany] = useState<string>("");
 
   useEffect(() => {
-    if (hasWallet() && window.ethereum.selectedAddress) {
-      setAccount(window.ethereum.selectedAddress as Address);
+    if (address) {
+      const saved = localStorage.getItem(`payvault:company:${address.toLowerCase()}`);
+      setCompany(saved || "");
     }
-    window.ethereum?.on?.("accountsChanged", (a: string[]) =>
-      setAccount((a[0] as Address) || undefined),
-    );
-  }, []);
-
-  async function onConnect() {
-    setErr("");
-    try {
-      setAccount(await connectWallet());
-    } catch (e: any) {
-      setErr(e.message || String(e));
-    }
-  }
+  }, [address]);
 
   if (view === "landing") {
     return <Landing onStart={() => setView("auth")} />;
@@ -57,8 +45,6 @@ export function App() {
   if (view === "auth") {
     return (
       <Auth
-        account={account}
-        onConnect={onConnect}
         onEnter={(name) => {
           setCompany(name);
           setView("app");
@@ -73,20 +59,14 @@ export function App() {
       <header className="topbar">
         <div className="brand">
           <span className="logo">PayVault</span>
-          {company ? (
-            <span className="pill">{company}</span>
-          ) : (
-            <span className="pill">Confidential Payroll · Nox</span>
-          )}
+          <span className="pill">{company || "Confidential Payroll · Nox"}</span>
         </div>
         <div className="topbar-right">
-          {account ? (
-            <span className="account">{short(account)}</span>
-          ) : (
-            <button className="btn" onClick={onConnect}>
-              {hasWallet() ? "Connect wallet" : "Install MetaMask"}
-            </button>
-          )}
+          <ConnectButton
+            accountStatus="address"
+            chainStatus="icon"
+            showBalance={{ smallScreen: false, largeScreen: true }}
+          />
           <button className="signout" onClick={() => setView("landing")}>
             Sign out
           </button>
@@ -97,13 +77,13 @@ export function App() {
         <h1>Pay your team on-chain. Salaries stay secret.</h1>
         <p>
           Salaries are encrypted end-to-end with{" "}
-          <a href="https://docs.noxprotocol.io" target="_blank">
+          <a href="https://docs.noxprotocol.io" target="_blank" rel="noreferrer">
             Nox
           </a>
           . The public chain only sees <em>that</em> payments happen, never{" "}
           <em>how much</em>. An auditor can verify the aggregate without seeing
           individual salaries.{" "}
-          <a href={`${EXPLORER}/address/${PAYROLL_VAULT_ADDRESS}`} target="_blank">
+          <a href={`${EXPLORER}/address/${PAYROLL_VAULT_ADDRESS}`} target="_blank" rel="noreferrer">
             Contract ↗
           </a>
         </p>
@@ -124,13 +104,11 @@ export function App() {
         </button>
       </nav>
 
-      {err && <div className="error">{err}</div>}
-
       <main>
-        {tab === "company" && <CompanyPanel account={account} onConnect={onConnect} />}
-        {tab === "public" && <PublicPanel defaultCompany={account} />}
-        {tab === "auditor" && <AuditorPanel account={account} onConnect={onConnect} />}
-        {tab === "employee" && <EmployeePanel account={account} onConnect={onConnect} />}
+        {tab === "company" && <CompanyPanel />}
+        {tab === "public" && <PublicPanel defaultCompany={address} />}
+        {tab === "auditor" && <AuditorPanel />}
+        {tab === "employee" && <EmployeePanel />}
       </main>
 
       <footer>
@@ -142,13 +120,9 @@ export function App() {
 
 /* ---------------- Company ---------------- */
 
-function CompanyPanel({
-  account,
-  onConnect,
-}: {
-  account?: Address;
-  onConnect: () => void;
-}) {
+function CompanyPanel() {
+  const { address } = useAccount();
+  const { data: walletClient } = useWalletClient();
   const [emp, setEmp] = useState("");
   const [salary, setSalary] = useState("");
   const [auditor, setAuditor] = useState("");
@@ -159,10 +133,9 @@ function CompanyPanel({
   const [reveal, setReveal] = useState<Record<string, string>>({});
 
   async function refresh() {
-    if (!account) return;
+    if (!address) return;
     try {
-      const c = vaultContract(account);
-      const list = (await c.read.employees([account])) as Address[];
+      const list = (await readVault().read.employees([address])) as Address[];
       setEmployees([...list]);
     } catch {
       /* ignore */
@@ -170,15 +143,13 @@ function CompanyPanel({
   }
   useEffect(() => {
     refresh();
-  }, [account]);
+  }, [address]);
 
-  if (!account)
+  if (!address)
     return (
       <div className="card center">
         <p>Connect your wallet to manage your company payroll.</p>
-        <button className="btn" onClick={onConnect}>
-          Connect wallet
-        </button>
+        <ConnectButton />
       </div>
     );
 
@@ -193,20 +164,17 @@ function CompanyPanel({
     } catch {
       return setStatus("❌ Salary must be a positive whole number");
     }
+    if (!walletClient) return setStatus("❌ Wallet not ready");
     setBusy(true);
     try {
       setStatus("🔐 Encrypting salary in the Nox TEE…");
-      const hc = await handleClient(account);
-      const { handle, handleProof } = await hc.encryptInput(
-        amount,
-        "uint256",
-        PAYROLL_VAULT_ADDRESS,
-      );
+      const hc = await handleClient(walletClient);
+      const { handle, handleProof } = await hc.encryptInput(amount, "uint256", PAYROLL_VAULT_ADDRESS);
       setStatus("⛓️ Sending addEmployee() transaction…");
-      const tx = await sendVaultTx(account, "addEmployee", [emp as Address, handle, handleProof]);
+      const tx = await sendVaultTx(walletClient, "addEmployee", [emp as Address, handle, handleProof]);
       setStatus("⏳ Waiting for confirmation…");
       await publicClient().waitForTransactionReceipt({ hash: tx });
-      setStatus(`✅ Employee added. Salary stays encrypted on-chain.`);
+      setStatus("✅ Employee added. Salary stays encrypted on-chain.");
       setEmp("");
       setSalary("");
       refresh();
@@ -218,17 +186,17 @@ function CompanyPanel({
   }
 
   async function decryptTotal() {
+    if (!walletClient) return;
     setBusy(true);
     setStatus("🔓 Decrypting your total payroll…");
     try {
-      const c = vaultContract(account!);
-      const handle = (await c.read.totalPayrollHandle([account!])) as `0x${string}`;
+      const handle = (await readVault().read.totalPayrollHandle([address!])) as `0x${string}`;
       if (handle === ZERO_HANDLE) {
         setTotal("0");
         setStatus("No payroll yet.");
         return;
       }
-      const v = await decryptWithRetry(account!, handle);
+      const v = await decryptWithRetry(walletClient, handle);
       setTotal(v.toString());
       setStatus("✅ Total decrypted (only you can see this).");
     } catch (e: any) {
@@ -239,22 +207,23 @@ function CompanyPanel({
   }
 
   async function revealSalary(e: Address) {
+    if (!walletClient) return;
     setReveal((r) => ({ ...r, [e]: "…" }));
     try {
-      const c = vaultContract(account!);
-      const handle = (await c.read.salaryHandleOf([account!, e])) as `0x${string}`;
-      const v = await decryptWithRetry(account!, handle);
+      const handle = (await readVault().read.salaryHandleOf([address!, e])) as `0x${string}`;
+      const v = await decryptWithRetry(walletClient, handle);
       setReveal((r) => ({ ...r, [e]: v.toString() }));
-    } catch (err: any) {
+    } catch {
       setReveal((r) => ({ ...r, [e]: "denied" }));
     }
   }
 
   async function runPayroll() {
+    if (!walletClient) return;
     setBusy(true);
     setStatus("💸 Paying all employees confidentially…");
     try {
-      const tx = await sendVaultTx(account!, "runPayroll", []);
+      const tx = await sendVaultTx(walletClient, "runPayroll", []);
       await publicClient().waitForTransactionReceipt({ hash: tx });
       setStatus("✅ Payroll run. Each employee received an encrypted cPAY balance. Amounts stay secret.");
     } catch (e: any) {
@@ -268,10 +237,11 @@ function CompanyPanel({
     setStatus("");
     if (!isAddress(auditor, { strict: false }))
       return setStatus("❌ Invalid auditor address (need 0x + 40 hex chars)");
+    if (!walletClient) return;
     setBusy(true);
     try {
       setStatus("⛓️ Granting auditor access to the aggregate…");
-      const tx = await sendVaultTx(account!, "grantAuditor", [auditor as Address]);
+      const tx = await sendVaultTx(walletClient, "grantAuditor", [auditor as Address]);
       await publicClient().waitForTransactionReceipt({ hash: tx });
       setStatus(`✅ Auditor ${short(auditor)} can now verify the total, not individual salaries.`);
       setAuditor("");
@@ -289,11 +259,7 @@ function CompanyPanel({
         <label>Employee wallet</label>
         <input placeholder="0x…" value={emp} onChange={(e) => setEmp(e.target.value)} />
         <label>Monthly salary (confidential)</label>
-        <input
-          placeholder="e.g. 5000"
-          value={salary}
-          onChange={(e) => setSalary(e.target.value)}
-        />
+        <input placeholder="e.g. 5000" value={salary} onChange={(e) => setSalary(e.target.value)} />
         <button className="btn" disabled={busy} onClick={addEmployee}>
           🔐 Encrypt & add
         </button>
@@ -302,8 +268,8 @@ function CompanyPanel({
       <div className="card">
         <h3>Grant an auditor</h3>
         <p className="muted">
-          The auditor will be able to decrypt the <strong>aggregate</strong>{" "}
-          payroll only, never individual salaries.
+          The auditor will be able to decrypt the <strong>aggregate</strong> payroll
+          only, never individual salaries.
         </p>
         <label>Auditor wallet</label>
         <input placeholder="0x…" value={auditor} onChange={(e) => setAuditor(e.target.value)} />
@@ -378,7 +344,7 @@ function PublicPanel({ defaultCompany }: { defaultCompany?: Address }) {
     if (!isAddress(company, { strict: false }))
       return setStatus("❌ Invalid company address (need 0x + 40 hex chars)");
     try {
-      const c = vaultContract(company as Address);
+      const c = readVault();
       const n = (await c.read.employeeCount([company as Address])) as bigint;
       const i = (await c.read.isInitialized([company as Address])) as boolean;
       const sid = (await c.read.sablierStreamId([company as Address])) as bigint;
@@ -448,12 +414,12 @@ function PublicPanel({ defaultCompany }: { defaultCompany?: Address }) {
       <div className="beforeafter">
         <h4>See it on the public block explorer</h4>
         <div className="ba-grid">
-          <a className="ba-card before" href={`${EXPLORER}/tx/${DEMO_PUBLIC_TX}`} target="_blank">
+          <a className="ba-card before" href={`${EXPLORER}/tx/${DEMO_PUBLIC_TX}`} target="_blank" rel="noreferrer">
             <span className="ba-tag">🔴 Normal payment</span>
             <span className="ba-amt">5,000 visible</span>
             <span className="ba-note">A plain transfer. Anyone reads the amount.</span>
           </a>
-          <a className="ba-card after" href={`${EXPLORER}/tx/${DEMO_CONFIDENTIAL_TX}`} target="_blank">
+          <a className="ba-card after" href={`${EXPLORER}/tx/${DEMO_CONFIDENTIAL_TX}`} target="_blank" rel="noreferrer">
             <span className="ba-tag">🟢 With PayVault</span>
             <span className="ba-amt">🔒 encrypted</span>
             <span className="ba-note">Same operation. The salary is an unreadable handle.</span>
@@ -468,25 +434,19 @@ function PublicPanel({ defaultCompany }: { defaultCompany?: Address }) {
 
 /* ---------------- Auditor ---------------- */
 
-function AuditorPanel({
-  account,
-  onConnect,
-}: {
-  account?: Address;
-  onConnect: () => void;
-}) {
+function AuditorPanel() {
+  const { address } = useAccount();
+  const { data: walletClient } = useWalletClient();
   const [company, setCompany] = useState("");
   const [total, setTotal] = useState("");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
 
-  if (!account)
+  if (!address)
     return (
       <div className="card center">
         <p>Connect the auditor wallet the company granted access to.</p>
-        <button className="btn" onClick={onConnect}>
-          Connect wallet
-        </button>
+        <ConnectButton />
       </div>
     );
 
@@ -494,19 +454,19 @@ function AuditorPanel({
     setStatus("");
     if (!isAddress(company, { strict: false }))
       return setStatus("❌ Invalid company address (need 0x + 40 hex chars)");
+    if (!walletClient) return;
     setBusy(true);
     setStatus("🔓 Decrypting the aggregate payroll…");
     try {
-      const c = vaultContract(account!);
-      const handle = (await c.read.totalPayrollHandle([company as Address])) as `0x${string}`;
+      const handle = (await readVault().read.totalPayrollHandle([company as Address])) as `0x${string}`;
       if (handle === ZERO_HANDLE) {
         setStatus("No payroll for this company.");
         return;
       }
-      const v = await decryptWithRetry(account!, handle);
+      const v = await decryptWithRetry(walletClient, handle);
       setTotal(v.toString());
       setStatus("✅ Verified. You saw the total, never an individual salary.");
-    } catch (e: any) {
+    } catch {
       setStatus("🔒 Access denied. This company has not granted you access.");
     } finally {
       setBusy(false);
@@ -517,9 +477,9 @@ function AuditorPanel({
     <div className="card">
       <h3>Auditor verification</h3>
       <p className="muted">
-        Connected as <span className="mono">{short(account)}</span>. Enter a
-        company you were granted access to and decrypt its total payroll. You can
-        prove compliance <strong>without</strong> seeing any individual salary.
+        Connected as <span className="mono">{short(address)}</span>. Enter a company
+        you were granted access to and decrypt its total payroll. You can prove
+        compliance <strong>without</strong> seeing any individual salary.
       </p>
       <label>Company wallet</label>
       <div className="row">
@@ -543,41 +503,35 @@ function AuditorPanel({
 
 /* ---------------- Employee ---------------- */
 
-function EmployeePanel({
-  account,
-  onConnect,
-}: {
-  account?: Address;
-  onConnect: () => void;
-}) {
+function EmployeePanel() {
+  const { address } = useAccount();
+  const { data: walletClient } = useWalletClient();
   const [pay, setPay] = useState("");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
 
-  if (!account)
+  if (!address)
     return (
       <div className="card center">
         <p>Connect your employee wallet to see your confidential pay.</p>
-        <button className="btn" onClick={onConnect}>
-          Connect wallet
-        </button>
+        <ConnectButton />
       </div>
     );
 
   async function decryptPay() {
+    if (!walletClient) return;
     setBusy(true);
     setStatus("🔓 Decrypting your confidential pay…");
     try {
-      const c = vaultContract(account!);
-      const handle = (await c.read.confidentialBalanceOf([account!])) as `0x${string}`;
+      const handle = (await readVault().read.confidentialBalanceOf([address!])) as `0x${string}`;
       if (handle === ZERO_HANDLE) {
         setStatus("No pay received yet (ask your company to run payroll).");
         return;
       }
-      const v = await decryptWithRetry(account!, handle);
+      const v = await decryptWithRetry(walletClient, handle);
       setPay(v.toString());
       setStatus("✅ Only you can read this. It is encrypted for everyone else.");
-    } catch (e: any) {
+    } catch {
       setStatus("🔒 Nothing to decrypt yet, or access not granted.");
     } finally {
       setBusy(false);
@@ -588,7 +542,7 @@ function EmployeePanel({
     <div className="card">
       <h3>My confidential pay</h3>
       <p className="muted">
-        Connected as <span className="mono">{short(account)}</span>. Your received
+        Connected as <span className="mono">{short(address)}</span>. Your received
         pay is held as a confidential <strong>cPAY</strong> balance (ERC-7984),
         encrypted on-chain. Only you can decrypt it.
       </p>
