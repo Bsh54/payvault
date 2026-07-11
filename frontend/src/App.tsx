@@ -16,6 +16,7 @@ import {
   DEMO_PUBLIC_TX,
   DEMO_CONFIDENTIAL_TX,
 } from "./lib/payvault";
+import { Landing } from "./Landing";
 
 type Tab = "company" | "public" | "auditor" | "employee";
 
@@ -27,6 +28,7 @@ export function App() {
   const [account, setAccount] = useState<Address | undefined>();
   const [tab, setTab] = useState<Tab>("company");
   const [err, setErr] = useState<string>("");
+  const [view, setView] = useState<"landing" | "app">("landing");
 
   useEffect(() => {
     if (hasWallet() && window.ethereum.selectedAddress) {
@@ -44,6 +46,10 @@ export function App() {
     } catch (e: any) {
       setErr(e.message || String(e));
     }
+  }
+
+  if (view === "landing") {
+    return <Landing onStart={() => setView("app")} />;
   }
 
   return (
