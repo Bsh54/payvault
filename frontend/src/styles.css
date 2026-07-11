@@ -37,6 +37,12 @@ a:hover { text-decoration: underline; }
   font-family: ui-monospace, monospace; font-size: .85rem; color: var(--accent);
   border: 1px solid var(--border); border-radius: 999px; padding: .4em .9em;
 }
+.company-edit {
+  background: transparent; border: 1px solid var(--border); border-radius: 999px;
+  color: var(--text); font-family: inherit; font-size: .82rem; padding: .35em .8em; width: 170px;
+}
+.company-edit::placeholder { color: var(--muted); }
+.company-edit:focus { outline: none; border-color: var(--accent); }
 .topbar-right { display: flex; align-items: center; gap: 10px; }
 .signout {
   background: none; border: none; color: var(--muted); font-size: .85rem; cursor: pointer;

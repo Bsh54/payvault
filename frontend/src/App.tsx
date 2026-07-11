@@ -17,7 +17,6 @@ import {
   DEMO_CONFIDENTIAL_TX,
 } from "./lib/payvault";
 import { Landing } from "./Landing";
-import { Auth } from "./Auth";
 
 type Tab = "company" | "public" | "auditor" | "employee";
 
@@ -28,7 +27,7 @@ function short(a?: string) {
 export function App() {
   const { address } = useAccount();
   const [tab, setTab] = useState<Tab>("company");
-  const [view, setView] = useState<"landing" | "auth" | "app">("landing");
+  const [view, setView] = useState<"landing" | "app">("landing");
   const [company, setCompany] = useState<string>("");
 
   useEffect(() => {
@@ -38,20 +37,13 @@ export function App() {
     }
   }, [address]);
 
-  if (view === "landing") {
-    return <Landing onStart={() => setView("auth")} />;
+  function saveCompany(v: string) {
+    setCompany(v);
+    if (address) localStorage.setItem(`payvault:company:${address.toLowerCase()}`, v);
   }
 
-  if (view === "auth") {
-    return (
-      <Auth
-        onEnter={(name) => {
-          setCompany(name);
-          setView("app");
-        }}
-        onBack={() => setView("landing")}
-      />
-    );
+  if (view === "landing") {
+    return <Landing onStart={() => setView("app")} />;
   }
 
   return (
@@ -59,7 +51,16 @@ export function App() {
       <header className="topbar">
         <div className="brand">
           <span className="logo">PayVault</span>
-          <span className="pill">{company || "Confidential Payroll · Nox"}</span>
+          {address ? (
+            <input
+              className="company-edit"
+              placeholder="Name your company"
+              value={company}
+              onChange={(e) => saveCompany(e.target.value)}
+            />
+          ) : (
+            <span className="pill">Confidential Payroll · Nox</span>
+          )}
         </div>
         <div className="topbar-right">
           <ConnectButton
@@ -68,7 +69,7 @@ export function App() {
             showBalance={{ smallScreen: false, largeScreen: true }}
           />
           <button className="signout" onClick={() => setView("landing")}>
-            Sign out
+            Home
           </button>
         </div>
       </header>
