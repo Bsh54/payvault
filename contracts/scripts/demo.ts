@@ -34,9 +34,9 @@ const VAULT = deployment.PayrollVault as `0x${string}`;
 const ABI = [
   { type: "function", name: "addEmployee", stateMutability: "nonpayable", inputs: [{ name: "employee", type: "address" }, { name: "inputHandle", type: "bytes32" }, { name: "inputProof", type: "bytes" }], outputs: [] },
   { type: "function", name: "grantAuditor", stateMutability: "nonpayable", inputs: [{ name: "auditor", type: "address" }], outputs: [] },
-  { type: "function", name: "totalPayrollHandle", stateMutability: "view", inputs: [], outputs: [{ type: "bytes32" }] },
-  { type: "function", name: "salaryHandleOf", stateMutability: "view", inputs: [{ name: "employee", type: "address" }], outputs: [{ type: "bytes32" }] },
-  { type: "function", name: "employeeCount", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "totalPayrollHandle", stateMutability: "view", inputs: [{ name: "company", type: "address" }], outputs: [{ type: "bytes32" }] },
+  { type: "function", name: "salaryHandleOf", stateMutability: "view", inputs: [{ name: "company", type: "address" }, { name: "employee", type: "address" }], outputs: [{ type: "bytes32" }] },
+  { type: "function", name: "employeeCount", stateMutability: "view", inputs: [{ name: "company", type: "address" }], outputs: [{ type: "uint256" }] },
 ] as const;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -80,10 +80,10 @@ async function main() {
   const tx = await vault.write.addEmployee([employee.address, handle, handleProof]);
   await publicClient.waitForTransactionReceipt({ hash: tx });
   console.log(`   tx: ${tx}`);
-  console.log(`   employeeCount = ${await vault.read.employeeCount()}`);
+  console.log(`   employeeCount = ${await vault.read.employeeCount([owner.address])}`);
 
   // 3. Company decrypts the encrypted running total.
-  const totalHandle = (await vault.read.totalPayrollHandle()) as `0x${string}`;
+  const totalHandle = (await vault.read.totalPayrollHandle([owner.address])) as `0x${string}`;
   console.log(`3) Company decrypts total payroll …`);
   const totalAsOwner = await decryptWithRetry(ownerHandle, totalHandle, "owner");
   console.log(`   ✅ total (company view) = ${totalAsOwner}  (expected ${SALARY})`);
@@ -99,7 +99,7 @@ async function main() {
   console.log(`   ✅ total (auditor view) = ${totalAsAuditor}`);
 
   // 5. Selective disclosure: auditor must NOT see the individual salary.
-  const salaryHandle = (await vault.read.salaryHandleOf([employee.address])) as `0x${string}`;
+  const salaryHandle = (await vault.read.salaryHandleOf([owner.address, employee.address])) as `0x${string}`;
   console.log(`5) Auditor tries to read an INDIVIDUAL salary (must fail) …`);
   try {
     await auditorHandle.decrypt(salaryHandle);

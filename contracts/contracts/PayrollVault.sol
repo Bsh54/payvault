@@ -3,79 +3,73 @@ pragma solidity ^0.8.27;
 
 import {Nox, euint256, externalEuint256} from "@iexec-nox/nox-protocol-contracts/contracts/sdk/Nox.sol";
 
-/// @title PayrollVault
-/// @notice Confidential payroll registry built on Nox.
-///         Individual salaries are stored as encrypted handles (euint256) and are
-///         only decryptable by the company (owner) and the employee themselves.
-///         An encrypted running total is maintained so that an authorized auditor
-///         can verify the aggregate payroll WITHOUT ever seeing individual salaries
-///         (selective disclosure).
-/// @dev    The underlying public protocols (Safe treasury / Sablier funding stream)
-///         are never modified: this contract layers confidentiality on top of them.
+/// @title PayrollVault (multi-tenant)
+/// @notice Confidential payroll registry built on Nox. Any wallet is automatically
+///         the owner of its OWN payroll book, keyed by `msg.sender` (the company).
+///         Individual salaries are stored as encrypted handles (euint256), decryptable
+///         only by the company and the employee. An encrypted running total lets an
+///         authorized auditor verify the aggregate payroll WITHOUT seeing individual
+///         salaries (selective disclosure).
+/// @dev    Underlying public protocols (Safe treasury / Sablier funding) are never
+///         modified: this contract layers confidentiality on top of them.
 contract PayrollVault {
-    address public owner;
+    // company => has its total been initialized as an encrypted zero?
+    mapping(address => bool) private _initialized;
+    // company => encrypted sum of all its salaries
+    mapping(address => euint256) private _totalPayroll;
+    // company => list of employees
+    mapping(address => address[]) private _employees;
+    // company => employee => is on payroll
+    mapping(address => mapping(address => bool)) public isEmployee;
+    // company => employee => encrypted salary handle
+    mapping(address => mapping(address => euint256)) private _salary;
+    // company => auditor => granted aggregate view
+    mapping(address => mapping(address => bool)) public isAuditor;
 
-    address[] private _employees;
-    mapping(address => bool) public isEmployee;
+    // Public events carry NO amounts — only addresses.
+    event EmployeeAdded(address indexed company, address indexed employee);
+    event SalaryUpdated(address indexed company, address indexed employee);
+    event AuditorGranted(address indexed company, address indexed auditor);
+    event AuditorRevoked(address indexed company, address indexed auditor);
 
-    // Encrypted monthly salary per employee (handle → off-chain encrypted value).
-    mapping(address => euint256) private _salary;
-
-    // Encrypted sum of all salaries (for auditor selective disclosure).
-    euint256 private _totalPayroll;
-
-    mapping(address => bool) public isAuditor;
-
-    // Public events carry NO amounts — only addresses, so on-chain observers
-    // learn "who is on payroll" at most, never "how much".
-    event EmployeeAdded(address indexed employee);
-    event SalaryUpdated(address indexed employee);
-    event EmployeeRemoved(address indexed employee);
-    event AuditorGranted(address indexed auditor);
-    event AuditorRevoked(address indexed auditor);
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "PayrollVault: not owner");
-        _;
+    function _ensureInit(address company) private {
+        if (!_initialized[company]) {
+            euint256 zero = Nox.toEuint256(0);
+            _totalPayroll[company] = zero;
+            _initialized[company] = true;
+            Nox.allowThis(zero);
+            Nox.allow(zero, company);
+        }
     }
 
-    constructor() {
-        owner = msg.sender;
-        _totalPayroll = Nox.toEuint256(0);
-        Nox.allowThis(_totalPayroll);
-        Nox.allow(_totalPayroll, owner);
-    }
-
-    /// @notice Add an employee with an encrypted salary.
-    /// @param employee     the employee wallet address
-    /// @param inputHandle  handle of the encrypted salary, produced off-chain by the JS SDK
-    /// @param inputProof   proof that the handle was created by a legitimate Gateway
+    /// @notice Add an employee to the caller's payroll with an encrypted salary.
     function addEmployee(
         address employee,
         externalEuint256 inputHandle,
         bytes calldata inputProof
-    ) external onlyOwner {
+    ) external {
         require(employee != address(0), "PayrollVault: zero address");
-        require(!isEmployee[employee], "PayrollVault: already employee");
+        address company = msg.sender;
+        require(!isEmployee[company][employee], "PayrollVault: already employee");
+        _ensureInit(company);
 
         euint256 salary = Nox.fromExternal(inputHandle, inputProof);
 
-        _salary[employee] = salary;
-        isEmployee[employee] = true;
-        _employees.push(employee);
+        _salary[company][employee] = salary;
+        isEmployee[company][employee] = true;
+        _employees[company].push(employee);
 
-        _totalPayroll = Nox.add(_totalPayroll, salary);
+        euint256 total = Nox.add(_totalPayroll[company], salary);
+        _totalPayroll[company] = total;
 
-        // ACL: company + employee can read the salary; contract can reuse it.
         Nox.allowThis(salary);
-        Nox.allow(salary, owner);
+        Nox.allow(salary, company);
         Nox.allow(salary, employee);
 
-        // ACL: keep total reusable by the contract and readable by the company.
-        Nox.allowThis(_totalPayroll);
-        Nox.allow(_totalPayroll, owner);
+        Nox.allowThis(total);
+        Nox.allow(total, company);
 
-        emit EmployeeAdded(employee);
+        emit EmployeeAdded(company, employee);
     }
 
     /// @notice Update an existing employee's encrypted salary.
@@ -84,64 +78,69 @@ contract PayrollVault {
         address employee,
         externalEuint256 inputHandle,
         bytes calldata inputProof
-    ) external onlyOwner {
-        require(isEmployee[employee], "PayrollVault: not employee");
+    ) external {
+        address company = msg.sender;
+        require(isEmployee[company][employee], "PayrollVault: not employee");
 
         euint256 newSalary = Nox.fromExternal(inputHandle, inputProof);
-        euint256 oldSalary = _salary[employee];
+        euint256 oldSalary = _salary[company][employee];
 
-        _totalPayroll = Nox.sub(Nox.add(_totalPayroll, newSalary), oldSalary);
-        _salary[employee] = newSalary;
+        euint256 total = Nox.sub(Nox.add(_totalPayroll[company], newSalary), oldSalary);
+        _totalPayroll[company] = total;
+        _salary[company][employee] = newSalary;
 
         Nox.allowThis(newSalary);
-        Nox.allow(newSalary, owner);
+        Nox.allow(newSalary, company);
         Nox.allow(newSalary, employee);
 
-        Nox.allowThis(_totalPayroll);
-        Nox.allow(_totalPayroll, owner);
+        Nox.allowThis(total);
+        Nox.allow(total, company);
 
-        emit SalaryUpdated(employee);
+        emit SalaryUpdated(company, employee);
     }
 
-    /// @notice Grant an auditor read access to the AGGREGATE payroll only.
-    ///         This is selective disclosure: the auditor can decrypt the total,
-    ///         but has no access to any individual salary handle.
-    function grantAuditor(address auditor) external onlyOwner {
+    /// @notice Grant an auditor read access to the caller's AGGREGATE payroll only.
+    ///         Selective disclosure: the auditor can decrypt the total, but has no
+    ///         access to any individual salary handle.
+    function grantAuditor(address auditor) external {
         require(auditor != address(0), "PayrollVault: zero address");
-        isAuditor[auditor] = true;
-        Nox.allow(_totalPayroll, auditor);
-        emit AuditorGranted(auditor);
+        address company = msg.sender;
+        require(_initialized[company], "PayrollVault: no payroll yet");
+        isAuditor[company][auditor] = true;
+        Nox.allow(_totalPayroll[company], auditor);
+        emit AuditorGranted(company, auditor);
     }
 
-    /// @notice Revoke an auditor flag (off-chain views rely on the ACL snapshot).
-    function revokeAuditor(address auditor) external onlyOwner {
-        isAuditor[auditor] = false;
-        emit AuditorRevoked(auditor);
+    function revokeAuditor(address auditor) external {
+        isAuditor[msg.sender][auditor] = false;
+        emit AuditorRevoked(msg.sender, auditor);
     }
 
     // --- Encrypted handle getters (values only decryptable by ACL'd addresses) ---
 
-    /// @notice Returns the encrypted salary handle of an employee.
-    function salaryHandleOf(address employee) external view returns (euint256) {
-        return _salary[employee];
+    function salaryHandleOf(address company, address employee) external view returns (euint256) {
+        return _salary[company][employee];
     }
 
-    /// @notice Returns the encrypted total-payroll handle.
-    function totalPayrollHandle() external view returns (euint256) {
-        return _totalPayroll;
+    function totalPayrollHandle(address company) external view returns (euint256) {
+        return _totalPayroll[company];
     }
 
     // --- Public metadata (no amounts) ---
 
-    function employeeCount() external view returns (uint256) {
-        return _employees.length;
+    function isInitialized(address company) external view returns (bool) {
+        return _initialized[company];
     }
 
-    function employeeAt(uint256 index) external view returns (address) {
-        return _employees[index];
+    function employeeCount(address company) external view returns (uint256) {
+        return _employees[company].length;
     }
 
-    function employees() external view returns (address[] memory) {
-        return _employees;
+    function employeeAt(address company, uint256 index) external view returns (address) {
+        return _employees[company][index];
+    }
+
+    function employees(address company) external view returns (address[] memory) {
+        return _employees[company];
     }
 }
