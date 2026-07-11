@@ -37,6 +37,12 @@ a:hover { text-decoration: underline; }
   font-family: ui-monospace, monospace; font-size: .85rem; color: var(--accent);
   border: 1px solid var(--border); border-radius: 999px; padding: .4em .9em;
 }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.signout {
+  background: none; border: none; color: var(--muted); font-size: .85rem; cursor: pointer;
+  font-family: inherit; padding: .4em .6em; border-radius: 8px;
+}
+.signout:hover { color: var(--text); }
 
 .hero { margin: 34px 0 22px; }
 .hero h1 { font-size: 2rem; margin: 0 0 .4em; line-height: 1.15; }

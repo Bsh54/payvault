@@ -17,6 +17,7 @@ import {
   DEMO_CONFIDENTIAL_TX,
 } from "./lib/payvault";
 import { Landing } from "./Landing";
+import { Auth } from "./Auth";
 
 type Tab = "company" | "public" | "auditor" | "employee";
 
@@ -28,7 +29,8 @@ export function App() {
   const [account, setAccount] = useState<Address | undefined>();
   const [tab, setTab] = useState<Tab>("company");
   const [err, setErr] = useState<string>("");
-  const [view, setView] = useState<"landing" | "app">("landing");
+  const [view, setView] = useState<"landing" | "auth" | "app">("landing");
+  const [company, setCompany] = useState<string>("");
 
   useEffect(() => {
     if (hasWallet() && window.ethereum.selectedAddress) {
@@ -49,7 +51,21 @@ export function App() {
   }
 
   if (view === "landing") {
-    return <Landing onStart={() => setView("app")} />;
+    return <Landing onStart={() => setView("auth")} />;
+  }
+
+  if (view === "auth") {
+    return (
+      <Auth
+        account={account}
+        onConnect={onConnect}
+        onEnter={(name) => {
+          setCompany(name);
+          setView("app");
+        }}
+        onBack={() => setView("landing")}
+      />
+    );
   }
 
   return (
@@ -57,15 +73,24 @@ export function App() {
       <header className="topbar">
         <div className="brand">
           <span className="logo">PayVault</span>
-          <span className="pill">Confidential Payroll · Nox</span>
+          {company ? (
+            <span className="pill">{company}</span>
+          ) : (
+            <span className="pill">Confidential Payroll · Nox</span>
+          )}
         </div>
-        {account ? (
-          <span className="account">{short(account)}</span>
-        ) : (
-          <button className="btn" onClick={onConnect}>
-            {hasWallet() ? "Connect wallet" : "Install MetaMask"}
+        <div className="topbar-right">
+          {account ? (
+            <span className="account">{short(account)}</span>
+          ) : (
+            <button className="btn" onClick={onConnect}>
+              {hasWallet() ? "Connect wallet" : "Install MetaMask"}
+            </button>
+          )}
+          <button className="signout" onClick={() => setView("landing")}>
+            Sign out
           </button>
-        )}
+        </div>
       </header>
 
       <section className="hero">
