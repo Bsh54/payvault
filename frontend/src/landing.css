@@ -82,6 +82,7 @@
   background: rgba(10,15,30,0.72); backdrop-filter: blur(12px);
 }
 .lp-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.2rem; letter-spacing: -0.02em; }
+.lp-nav-actions { display: flex; align-items: center; gap: 10px; }
 .lp-logo-mark {
   width: 34px; height: 34px; border-radius: 10px; background: var(--grad);
   display: flex; align-items: center; justify-content: center; color: #04150e; flex-shrink: 0;

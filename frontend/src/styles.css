@@ -49,6 +49,10 @@ a:hover { text-decoration: underline; }
   background: rgba(7,11,22,0.75); backdrop-filter: blur(10px);
 }
 .content-top h1 { font-size: 1.4rem; letter-spacing: -0.02em; font-weight: 700; margin: 0; }
+.content-top-right { display: flex; align-items: center; gap: 12px; }
+.verify-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-2); font-size: .84rem; font-weight: 600; text-decoration: none; border: 1px solid var(--border); border-radius: 10px; padding: .5em .8em; }
+.verify-link:hover { color: var(--green-2); border-color: var(--primary); text-decoration: none; }
+.verify-link svg { color: var(--green-2); }
 .content-main { padding: 26px 28px 60px; }
 
 /* KPI overview */

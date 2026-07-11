@@ -22,9 +22,14 @@ export function Landing({ onStart, onVerify }: { onStart: () => void; onVerify: 
           </span>
           <span>PayVault</span>
         </div>
-        <button className="lp-btn lp-btn-primary" onClick={onStart}>
-          Get started <ArrowRight size={16} weight="bold" />
-        </button>
+        <div className="lp-nav-actions">
+          <button className="lp-btn lp-btn-ghost" onClick={onVerify}>
+            Verify
+          </button>
+          <button className="lp-btn lp-btn-primary" onClick={onStart}>
+            Get started <ArrowRight size={16} weight="bold" />
+          </button>
+        </div>
       </header>
 
       {/* Hero — split: copy left, live visual right */}

@@ -128,11 +128,22 @@ export function App() {
       <div className="content">
         <header className="content-top">
           <h1>{TITLES[section]}</h1>
-          <ConnectButton
-            accountStatus="address"
-            chainStatus="icon"
-            showBalance={{ smallScreen: false, largeScreen: true }}
-          />
+          <div className="content-top-right">
+            <a
+              className="verify-link"
+              href={`${EXPLORER}/address/${address ?? PAYROLL_VAULT_ADDRESS}`}
+              target="_blank"
+              rel="noreferrer"
+              title="View this wallet's authentic on-chain record on Etherscan"
+            >
+              <ArrowSquareOut size={15} weight="bold" /> Verify on-chain
+            </a>
+            <ConnectButton
+              accountStatus="address"
+              chainStatus="icon"
+              showBalance={{ smallScreen: false, largeScreen: true }}
+            />
+          </div>
         </header>
 
         <main className="content-main">
