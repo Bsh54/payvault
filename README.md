@@ -20,6 +20,7 @@ But if you hide *everything*, how does an auditor or tax authority verify compli
 1. **Confidential payroll** — salary amounts are encrypted (`euint256` handles). They are never visible on-chain; only the company and the employee can decrypt their own figures.
 2. **Selective disclosure** — the company can grant an auditor access to the **aggregate** payroll only. The auditor decrypts the total, but **cannot** read any individual salary.
 3. **Public funding layer (Sablier)** — the company funds the vault with **one public Sablier lump-sum stream**. The public sees only the aggregate budget flowing in; the **per-employee split stays encrypted** inside Nox.
+4. **Confidential payout (ERC-7984)** — `runPayroll()` pays each employee a confidential **cPAY** token balance (ERC-7984) equal to their encrypted salary. Amounts stay hidden on-chain; only each employee can decrypt their own received pay.
 
 ```
 Company (MetaMask)
@@ -36,11 +37,11 @@ Off-chain TEE (Nox Runner) computes on encrypted data
 
 | Contract | Address |
 |---|---|
-| **PayrollVault** | [`0xb3ce25d55ee903184ed4158c69a619e222ec1840`](https://sepolia.etherscan.io/address/0xb3ce25d55ee903184ed4158c69a619e222ec1840) |
-| **PayUSD** (test payroll token) | [`0xffedd1cbab8b30f2c1c3e96439fd666ad20ca017`](https://sepolia.etherscan.io/address/0xffedd1cbab8b30f2c1c3e96439fd666ad20ca017) |
+| **PayrollVault** (also the cPAY ERC-7984 token) | [`0x48e48f43ee633da6ae5a5a433f4f1c3f69ea5d8f`](https://sepolia.etherscan.io/address/0x48e48f43ee633da6ae5a5a433f4f1c3f69ea5d8f) |
+| **PayUSD** (test payroll token) | [`0xda4db7f6f01c01969043521adca9dbe75d7be3ee`](https://sepolia.etherscan.io/address/0xda4db7f6f01c01969043521adca9dbe75d7be3ee) |
 | **Sablier Lockup** (external, unmodified) | [`0xe61cb9153356419bdaD0A8767c059f92d221a3C4`](https://sepolia.etherscan.io/address/0xe61cb9153356419bdaD0A8767c059f92d221a3C4) |
 
-Example public funding stream created by the demo: **Sablier stream #148**.
+Example public funding stream created by the demo: **Sablier stream #149**.
 
 ## Repository layout
 
