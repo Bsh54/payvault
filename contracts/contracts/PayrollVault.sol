@@ -26,11 +26,18 @@ contract PayrollVault {
     // company => auditor => granted aggregate view
     mapping(address => mapping(address => bool)) public isAuditor;
 
+    // --- Public funding layer (Sablier) ---
+    // The company funds the vault with ONE public Sablier stream (a lump sum).
+    // The public sees the aggregate budget; the per-employee split stays encrypted.
+    mapping(address => uint256) public sablierStreamId;
+    mapping(address => uint256) public publicBudget;
+
     // Public events carry NO amounts — only addresses.
     event EmployeeAdded(address indexed company, address indexed employee);
     event SalaryUpdated(address indexed company, address indexed employee);
     event AuditorGranted(address indexed company, address indexed auditor);
     event AuditorRevoked(address indexed company, address indexed auditor);
+    event FundingLinked(address indexed company, uint256 streamId, uint256 publicAmount);
 
     function _ensureInit(address company) private {
         if (!_initialized[company]) {
@@ -114,6 +121,15 @@ contract PayrollVault {
     function revokeAuditor(address auditor) external {
         isAuditor[msg.sender][auditor] = false;
         emit AuditorRevoked(msg.sender, auditor);
+    }
+
+    /// @notice Record the public Sablier stream that funds this company's payroll.
+    /// @dev    The stream itself is created directly on Sablier (recipient = this vault);
+    ///         here we just bookkeep the public lump-sum amount and stream id.
+    function linkFunding(uint256 streamId, uint256 publicAmount) external {
+        sablierStreamId[msg.sender] = streamId;
+        publicBudget[msg.sender] = publicAmount;
+        emit FundingLinked(msg.sender, streamId, publicAmount);
     }
 
     // --- Encrypted handle getters (values only decryptable by ACL'd addresses) ---

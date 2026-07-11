@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { isAddress, type Address } from "viem";
+import { isAddress, formatUnits, type Address } from "viem";
 import {
   connectWallet,
   hasWallet,
@@ -305,6 +305,8 @@ function PublicPanel({ defaultCompany }: { defaultCompany?: Address }) {
   const [company, setCompany] = useState<string>(defaultCompany || "");
   const [count, setCount] = useState<number | null>(null);
   const [init, setInit] = useState<boolean | null>(null);
+  const [streamId, setStreamId] = useState<bigint>(0n);
+  const [budget, setBudget] = useState<bigint>(0n);
   const [status, setStatus] = useState("");
 
   useEffect(() => {
@@ -318,8 +320,12 @@ function PublicPanel({ defaultCompany }: { defaultCompany?: Address }) {
       const c = vaultContract(company as Address);
       const n = (await c.read.employeeCount([company as Address])) as bigint;
       const i = (await c.read.isInitialized([company as Address])) as boolean;
+      const sid = (await c.read.sablierStreamId([company as Address])) as bigint;
+      const b = (await c.read.publicBudget([company as Address])) as bigint;
       setCount(Number(n));
       setInit(i);
+      setStreamId(sid);
+      setBudget(b);
     } catch (e: any) {
       setStatus("❌ " + (e.message || String(e)));
     }
@@ -354,6 +360,28 @@ function PublicPanel({ defaultCompany }: { defaultCompany?: Address }) {
             <span>salary amounts (hidden)</span>
           </div>
         </div>
+      )}
+      {count !== null && streamId > 0n && (
+        <div className="public-out">
+          <div className="stat">
+            <span className="big">#{streamId.toString()}</span>
+            <span>public Sablier funding stream</span>
+          </div>
+          <div className="stat">
+            <span className="big">{formatUnits(budget, 18)}</span>
+            <span>PayUSD budget (aggregate, public)</span>
+          </div>
+          <div className="stat">
+            <span className="big">= 🔒</span>
+            <span>split across employees (hidden)</span>
+          </div>
+        </div>
+      )}
+      {count !== null && (
+        <p className="muted" style={{ marginTop: 12 }}>
+          The public sees a single Sablier lump sum funding the vault — never who
+          gets what. That confidential split is enforced by Nox.
+        </p>
       )}
       {status && <div className="status">{status}</div>}
     </div>

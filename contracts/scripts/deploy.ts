@@ -16,9 +16,14 @@ async function main() {
   const vault = await viem.deployContract("PayrollVault");
   console.log(`✅ PayrollVault deployed at: ${vault.address}`);
 
+  const payusd = await viem.deployContract("PayUSD");
+  console.log(`✅ PayUSD deployed at: ${payusd.address}`);
+
   const out = {
     chainId,
     PayrollVault: vault.address,
+    PayUSD: payusd.address,
+    SablierLockup: "0xe61cb9153356419bdaD0A8767c059f92d221a3C4",
     deployer: deployer.account.address,
     deployedAt: new Date().toISOString(),
   };
