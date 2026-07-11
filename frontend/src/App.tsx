@@ -7,6 +7,7 @@ import {
   handleClient,
   decryptWithRetry,
   publicClient,
+  sendVaultTx,
   ZERO_HANDLE,
 } from "./lib/wallet";
 import { PAYROLL_VAULT_ADDRESS, EXPLORER } from "./lib/payvault";
@@ -162,8 +163,7 @@ function CompanyPanel({
         PAYROLL_VAULT_ADDRESS,
       );
       setStatus("⛓️ Sending addEmployee() transaction…");
-      const c = vaultContract(account);
-      const tx = await c.write.addEmployee([emp as Address, handle, handleProof]);
+      const tx = await sendVaultTx(account, "addEmployee", [emp as Address, handle, handleProof]);
       setStatus("⏳ Waiting for confirmation…");
       await publicClient().waitForTransactionReceipt({ hash: tx });
       setStatus(`✅ Employee added. Salary stays encrypted on-chain.`);
@@ -217,8 +217,7 @@ function CompanyPanel({
     setBusy(true);
     try {
       setStatus("⛓️ Granting auditor access to the aggregate…");
-      const c = vaultContract(account!);
-      const tx = await c.write.grantAuditor([auditor as Address]);
+      const tx = await sendVaultTx(account!, "grantAuditor", [auditor as Address]);
       await publicClient().waitForTransactionReceipt({ hash: tx });
       setStatus(`✅ Auditor ${short(auditor)} can now verify the total — not individual salaries.`);
       setAuditor("");

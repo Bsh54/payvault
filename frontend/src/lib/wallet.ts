@@ -4,6 +4,7 @@ import {
   custom,
   http,
   getContract,
+  encodeFunctionData,
   type Address,
   type WalletClient,
   type PublicClient,
@@ -82,6 +83,30 @@ export function vaultContract(account: Address) {
 
 export async function handleClient(account: Address) {
   return createViemHandleClient(walletClient(account));
+}
+
+/**
+ * Send a PayrollVault transaction via the raw injected provider.
+ * This works for BOTH classic EOAs and MetaMask Smart Accounts (ERC-4337):
+ * we let MetaMask build/route the transaction (and gas) instead of viem, which
+ * cannot prepare gas for smart accounts (the "Cannot destructure gasLimit" bug).
+ */
+export async function sendVaultTx(
+  account: Address,
+  functionName: string,
+  args: readonly unknown[],
+): Promise<`0x${string}`> {
+  const data = encodeFunctionData({
+    abi: PAYROLL_VAULT_ABI,
+    functionName: functionName as any,
+    args: args as any,
+  });
+  await ensureChain();
+  const hash = (await window.ethereum.request({
+    method: "eth_sendTransaction",
+    params: [{ from: account, to: PAYROLL_VAULT_ADDRESS, data }],
+  })) as `0x${string}`;
+  return hash;
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
