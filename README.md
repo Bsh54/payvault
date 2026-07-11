@@ -1,51 +1,107 @@
 # PayVault — Confidential Payroll & Treasury on Nox
 
 > Pay your team on-chain **without ever revealing salaries** — while staying fully auditable.
-> Built for the **iExec WTF Hackathon (Summer Edition)** on **Nox**, iExec's confidential smart contract layer.
+> Built for the **iExec WTF Hackathon (Summer Edition)** on **Nox**, iExec's confidential smart-contract layer.
 
-**Live demo:** https://payvault.shadrakbessanh.me
+**🌐 Live demo:** https://payvault.shadrakbessanh.me
+**⛓️ Network:** Ethereum Sepolia (chainId 11155111)
 
 ---
 
 ## The problem
 
-Public blockchains expose **everything**. If a company pays its team on-chain (e.g. via Sablier streams or a Safe treasury), the whole world can see **who earns how much**. That is a non-starter for real businesses.
-
+Public blockchains expose **everything**. If a company pays its team on-chain (e.g. via a Sablier stream or a Safe treasury), the whole world can see **who earns how much**. That is a non-starter for real businesses.
 But if you hide *everything*, how does an auditor or tax authority verify compliance?
 
 ## The solution
 
-**PayVault** adds a confidentiality layer over **existing public protocols (Safe / Sablier)** using **Nox**, without modifying them and without breaking composability:
+**PayVault** layers confidentiality over **existing public protocols** using **Nox**, without modifying them and without breaking composability:
 
-1. **Confidential payroll** — salary amounts are encrypted; payments still settle on real Safe/Sablier contracts, but amounts stay hidden on-chain.
-2. **Selective disclosure** — an authorized auditor can generate a proof (e.g. *"total payroll = X, taxes paid"*) **without revealing individual salaries**.
-3. *(stretch)* **Yield-bearing treasury** — idle funds earn yield on Aave, amounts kept private.
-
-## Architecture (high level)
+1. **Confidential payroll** — salary amounts are encrypted (`euint256` handles). They are never visible on-chain; only the company and the employee can decrypt their own figures.
+2. **Selective disclosure** — the company can grant an auditor access to the **aggregate** payroll only. The auditor decrypts the total, but **cannot** read any individual salary.
+3. **Public funding layer (Sablier)** — the company funds the vault with **one public Sablier lump-sum stream**. The public sees only the aggregate budget flowing in; the **per-employee split stays encrypted** inside Nox.
 
 ```
-Front-end (Next.js) ──encrypt──▶ Nox confidential contracts (TEE)
-                                        │ payment order (no amounts revealed)
-                                        ▼
-                         Public protocols: Safe · Sablier   (ETH Sepolia)
+Company (MetaMask)
+   │  1 public Sablier stream (lump sum)         ← public sees only the total
+   ▼
+PayrollVault (Nox confidential contract)         ← per-employee salaries = euint256 (encrypted)
+   │  ACL: company + employee can read a salary
+   │  ACL: auditor can read ONLY the total  ← selective disclosure
+   ▼
+Off-chain TEE (Nox Runner) computes on encrypted data
 ```
 
-## Status
+## Deployed addresses (Sepolia)
 
-🚧 **Phase 0 — foundations laid.** Placeholder deployed, infra wired. Development in progress.
+| Contract | Address |
+|---|---|
+| **PayrollVault** | [`0xb3ce25d55ee903184ed4158c69a619e222ec1840`](https://sepolia.etherscan.io/address/0xb3ce25d55ee903184ed4158c69a619e222ec1840) |
+| **PayUSD** (test payroll token) | [`0xffedd1cbab8b30f2c1c3e96439fd666ad20ca017`](https://sepolia.etherscan.io/address/0xffedd1cbab8b30f2c1c3e96439fd666ad20ca017) |
+| **Sablier Lockup** (external, unmodified) | [`0xe61cb9153356419bdaD0A8767c059f92d221a3C4`](https://sepolia.etherscan.io/address/0xe61cb9153356419bdaD0A8767c059f92d221a3C4) |
 
-## Deliverables checklist (hackathon)
+Example public funding stream created by the demo: **Sablier stream #148**.
 
-- [ ] Public GitHub repo with viewable code
-- [ ] Functional front-end
-- [ ] Deployed on ETH Sepolia
-- [ ] `feedback.md` on iExec tools
+## Repository layout
+
+```
+contracts/           Hardhat 3 + Nox — confidential smart contracts
+  contracts/
+    PayrollVault.sol      multi-tenant confidential payroll + selective disclosure + Sablier link
+    PayUSD.sol            test ERC-20 payroll currency
+    ConfidentialPiggyBank.sol   Nox hello-world smoke test
+  scripts/
+    deploy.ts             deploy PayrollVault + PayUSD
+    demo.ts               end-to-end confidential flow (no mock data)
+    fund-sablier.ts       create a real public Sablier stream funding the vault
+frontend/            Vite + React dashboard (Company / Public / Auditor views)
+```
+
+## How Nox is used
+
+- Encrypted type `euint256` for every salary and the running total.
+- `Nox.fromExternal(handle, proof)` to accept SDK-encrypted inputs.
+- `Nox.add` / `Nox.sub` to keep the encrypted total in sync.
+- ACL: `Nox.allowThis`, `Nox.allow(handle, addr)` after every operation — the core of **selective disclosure** (grant the auditor the total handle only).
+- JS SDK `@iexec-nox/handle`: `encryptInput`, `decrypt` (gasless, EIP-712) in both the scripts and the browser dashboard.
+
+## Getting started (contracts)
+
+```bash
+cd contracts
+npm install
+cp .env.example .env          # set SEPOLIA_RPC_URL + a funded test SEPOLIA_PRIVATE_KEY
+npx hardhat build             # compile (solc 0.8.35, evm osaka)
+npm run deploy:sepolia        # deploy PayrollVault + PayUSD
+npx hardhat run scripts/demo.ts         --network sepolia   # confidential flow
+npx hardhat run scripts/fund-sablier.ts --network sepolia   # public Sablier funding
+```
+
+## Getting started (frontend)
+
+```bash
+cd frontend
+npm install
+npm run dev        # local dev at http://localhost:5173
+npm run build      # static build -> dist/
+```
+
+The dashboard connects MetaMask, switches to Sepolia, and lets you:
+- **Company:** add employees with encrypted salaries, decrypt your own total, grant an auditor.
+- **Public:** inspect any company — see employee count and the public Sablier budget, but **no individual amounts**.
+- **Auditor:** decrypt the aggregate you were granted — never an individual salary.
+
+See `../TESTER.md` for a step-by-step demo script.
+
+## Deliverables
+
+- [x] Public GitHub repository with viewable code
+- [x] Functional front-end (live)
+- [x] Deployed on ETH Sepolia
+- [x] `feedback.md` on iExec tools
+- [x] Real integration with an existing public protocol (Sablier), unmodified
 - [ ] 4-min demo video
 - [ ] X post tagging @iEx_ec
-
-## Tech stack
-
-Next.js · React · Tailwind · Wagmi/RainbowKit · Solidity · Nox Hardhat plugin · Safe · Sablier
 
 ## License
 
