@@ -15,6 +15,7 @@ import {
   House,
   ArrowLeft,
   ArrowSquareOut,
+  PencilSimple,
 } from "@phosphor-icons/react";
 import {
   readVault,
@@ -57,6 +58,7 @@ export function App() {
   };
   const [view, setView] = useState<"landing" | "app" | "verify">(routeFromHash);
   const [company, setCompany] = useState<string>("");
+  const [editingCompany, setEditingCompany] = useState(false);
 
   useEffect(() => {
     const onHash = () => setView(routeFromHash());
@@ -103,12 +105,30 @@ export function App() {
           <span className="side-logo-mark"><ShieldCheck weight="fill" size={18} /></span>
           <span className="side-logo">PayVault</span>
         </div>
-        <input
-          className="side-company"
-          placeholder="Name your company"
-          value={company}
-          onChange={(e) => saveCompany(e.target.value)}
-        />
+        {address && (
+          <div className="side-company-box">
+            {editingCompany ? (
+              <input
+                autoFocus
+                className="side-company"
+                placeholder="Company name"
+                value={company}
+                onChange={(e) => saveCompany(e.target.value)}
+                onBlur={() => setEditingCompany(false)}
+                onKeyDown={(e) => e.key === "Enter" && setEditingCompany(false)}
+              />
+            ) : company ? (
+              <button className="side-company-label" onClick={() => setEditingCompany(true)}>
+                <span>{company}</span>
+                <PencilSimple size={13} />
+              </button>
+            ) : (
+              <button className="side-company-add" onClick={() => setEditingCompany(true)}>
+                + Name your company
+              </button>
+            )}
+          </div>
+        )}
 
         <nav className="side-nav">
           <div className="side-group">Company</div>

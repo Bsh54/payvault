@@ -21,12 +21,24 @@ a:hover { text-decoration: underline; }
 .side-brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 14px; }
 .side-logo-mark { width: 30px; height: 30px; border-radius: 9px; background: var(--grad); display: flex; align-items: center; justify-content: center; color: #04150e; flex-shrink: 0; }
 .side-logo { font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; }
+.side-company-box { margin: 0 4px 14px; }
 .side-company {
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
-  color: var(--text); font-family: inherit; font-size: .84rem; padding: .55em .7em; margin: 0 4px 14px;
+  width: 100%; background: var(--bg-card); border: 1px solid var(--primary); border-radius: 10px;
+  color: var(--text); font-family: inherit; font-size: .84rem; padding: .55em .7em;
 }
 .side-company::placeholder { color: var(--text-3); }
-.side-company:focus { outline: none; border-color: var(--primary); }
+.side-company:focus { outline: none; }
+.side-company-label, .side-company-add {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%;
+  background: none; border: none; color: var(--text-2); font-family: inherit; cursor: pointer;
+  padding: .3em .3em; border-radius: 8px; text-align: left;
+}
+.side-company-label span { font-size: .92rem; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+.side-company-label svg { color: var(--text-3); flex-shrink: 0; opacity: 0; transition: opacity .15s; }
+.side-company-label:hover svg { opacity: 1; }
+.side-company-label:hover, .side-company-add:hover { color: var(--text); }
+.side-company-add { font-size: .82rem; color: var(--text-3); }
+.side-company-add:hover { color: var(--green-2); }
 
 .side-nav { display: flex; flex-direction: column; gap: 3px; flex: 1; }
 .side-group { font-size: .68rem; text-transform: uppercase; letter-spacing: .12em; color: var(--text-3); font-weight: 700; padding: 14px 10px 6px; }
