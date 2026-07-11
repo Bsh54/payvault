@@ -16,6 +16,15 @@ import {
   DEMO_PUBLIC_TX,
   DEMO_CONFIDENTIAL_TX,
 } from "./lib/payvault";
+import {
+  Buildings,
+  Globe,
+  MagnifyingGlass,
+  Wallet,
+  LockKey,
+  LockKeyOpen,
+  CurrencyDollar,
+} from "@phosphor-icons/react";
 import { Landing } from "./Landing";
 
 type Tab = "company" | "public" | "auditor" | "employee";
@@ -27,8 +36,24 @@ function short(a?: string) {
 export function App() {
   const { address } = useAccount();
   const [tab, setTab] = useState<Tab>("company");
-  const [view, setView] = useState<"landing" | "app">("landing");
+  const [view, setView] = useState<"landing" | "app">(
+    () => (window.location.hash.includes("app") ? "app" : "landing"),
+  );
   const [company, setCompany] = useState<string>("");
+
+  // URL-hash routing so a page reload keeps you where you were.
+  useEffect(() => {
+    const onHash = () =>
+      setView(window.location.hash.includes("app") ? "app" : "landing");
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  function go(v: "landing" | "app") {
+    const hash = v === "app" ? "#/app" : "#/";
+    if (window.location.hash !== hash) window.location.hash = hash;
+    setView(v);
+  }
 
   useEffect(() => {
     if (address) {
@@ -43,7 +68,7 @@ export function App() {
   }
 
   if (view === "landing") {
-    return <Landing onStart={() => setView("app")} />;
+    return <Landing onStart={() => go("app")} />;
   }
 
   return (
@@ -68,7 +93,7 @@ export function App() {
             chainStatus="icon"
             showBalance={{ smallScreen: false, largeScreen: true }}
           />
-          <button className="signout" onClick={() => setView("landing")}>
+          <button className="signout" onClick={() => go("landing")}>
             Home
           </button>
         </div>
@@ -92,16 +117,16 @@ export function App() {
 
       <nav className="tabs">
         <button className={tab === "company" ? "on" : ""} onClick={() => setTab("company")}>
-          🏢 Company
+          <Buildings size={17} weight="bold" /> Company
         </button>
         <button className={tab === "public" ? "on" : ""} onClick={() => setTab("public")}>
-          🌐 Public view
+          <Globe size={17} weight="bold" /> Public view
         </button>
         <button className={tab === "auditor" ? "on" : ""} onClick={() => setTab("auditor")}>
-          🔎 Auditor
+          <MagnifyingGlass size={17} weight="bold" /> Auditor
         </button>
         <button className={tab === "employee" ? "on" : ""} onClick={() => setTab("employee")}>
-          💼 My pay
+          <Wallet size={17} weight="bold" /> My pay
         </button>
       </nav>
 
@@ -262,7 +287,7 @@ function CompanyPanel() {
         <label>Monthly salary (confidential)</label>
         <input placeholder="e.g. 5000" value={salary} onChange={(e) => setSalary(e.target.value)} />
         <button className="btn" disabled={busy} onClick={addEmployee}>
-          🔐 Encrypt & add
+          <LockKey size={17} weight="bold" /> Encrypt & add
         </button>
       </div>
 
@@ -284,10 +309,10 @@ function CompanyPanel() {
           <h3>Your payroll ({employees.length})</h3>
           <div className="row">
             <button className="btn ghost" disabled={busy} onClick={decryptTotal}>
-              🔓 Decrypt total{total !== "" ? `: ${total}` : ""}
+              <LockKeyOpen size={17} weight="bold" /> Decrypt total{total !== "" ? `: ${total}` : ""}
             </button>
             <button className="btn" disabled={busy || employees.length === 0} onClick={runPayroll}>
-              💸 Run payroll
+              <CurrencyDollar size={17} weight="bold" /> Run payroll
             </button>
           </div>
         </div>
@@ -384,8 +409,8 @@ function PublicPanel({ defaultCompany }: { defaultCompany?: Address }) {
             <span>payroll status</span>
           </div>
           <div className="stat">
-            <span className="big">🔒🔒🔒</span>
-            <span>salary amounts (hidden)</span>
+            <span className="big">Hidden</span>
+            <span>salary amounts (encrypted)</span>
           </div>
         </div>
       )}
@@ -400,8 +425,8 @@ function PublicPanel({ defaultCompany }: { defaultCompany?: Address }) {
             <span>PayUSD budget (aggregate, public)</span>
           </div>
           <div className="stat">
-            <span className="big">= 🔒</span>
-            <span>split across employees (hidden)</span>
+            <span className="big">Hidden</span>
+            <span>split across employees</span>
           </div>
         </div>
       )}
@@ -416,13 +441,13 @@ function PublicPanel({ defaultCompany }: { defaultCompany?: Address }) {
         <h4>See it on the public block explorer</h4>
         <div className="ba-grid">
           <a className="ba-card before" href={`${EXPLORER}/tx/${DEMO_PUBLIC_TX}`} target="_blank" rel="noreferrer">
-            <span className="ba-tag">🔴 Normal payment</span>
+            <span className="ba-tag">Normal payment</span>
             <span className="ba-amt">5,000 visible</span>
             <span className="ba-note">A plain transfer. Anyone reads the amount.</span>
           </a>
           <a className="ba-card after" href={`${EXPLORER}/tx/${DEMO_CONFIDENTIAL_TX}`} target="_blank" rel="noreferrer">
-            <span className="ba-tag">🟢 With PayVault</span>
-            <span className="ba-amt">🔒 encrypted</span>
+            <span className="ba-tag">With PayVault</span>
+            <span className="ba-amt">Encrypted</span>
             <span className="ba-note">Same operation. The salary is an unreadable handle.</span>
           </a>
         </div>
@@ -486,7 +511,7 @@ function AuditorPanel() {
       <div className="row">
         <input placeholder="0x…" value={company} onChange={(e) => setCompany(e.target.value)} />
         <button className="btn" disabled={busy} onClick={decryptAggregate}>
-          🔓 Decrypt total
+          <LockKeyOpen size={17} weight="bold" /> Decrypt total
         </button>
       </div>
       {total && (
@@ -548,7 +573,7 @@ function EmployeePanel() {
         encrypted on-chain. Only you can decrypt it.
       </p>
       <button className="btn" disabled={busy} onClick={decryptPay}>
-        🔓 Decrypt my pay
+        <LockKeyOpen size={17} weight="bold" /> Decrypt my pay
       </button>
       {pay && (
         <div className="public-out">
