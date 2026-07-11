@@ -8,7 +8,6 @@ import {
   Buildings,
   CheckCircle,
   ArrowLeft,
-  LockKey,
 } from "@phosphor-icons/react";
 
 function short(a?: string) {
@@ -42,25 +41,22 @@ export function Auth({
 
   return (
     <div className="lp auth-split">
-      {/* Left — brand / product preview */}
+      {/* Left — representative image with overlay text */}
       <div className="auth-left">
         <button className="auth-back" onClick={onBack}>
           <ArrowLeft size={16} weight="bold" /> Back
         </button>
-        <div className="auth-left-inner">
+        <div className="auth-left-overlay">
           <div className="lp-brand">
             <span className="lp-logo-mark"><ShieldCheck weight="fill" size={19} /></span>
             <span>PayVault</span>
           </div>
-          <h2>Confidential payroll on Ethereum.</h2>
-          <div className="lp-payslip lp-card auth-preview">
-            <div className="lp-payslip-head">
-              <span>Payroll · March</span>
-              <span className="lp-payslip-badge"><LockKey size={13} weight="fill" /> Encrypted</span>
-            </div>
-            <div className="lp-payslip-row"><span className="mono">0x8BEE…9288</span><span className="lp-enc"><LockKey size={13} /> ••• •••</span></div>
-            <div className="lp-payslip-row"><span className="mono">0x06Ef…bDf9</span><span className="lp-enc"><LockKey size={13} /> ••• •••</span></div>
-            <div className="lp-payslip-foot"><span><CheckCircle size={15} weight="fill" /> Auditor can verify the total</span></div>
+          <div className="auth-left-text">
+            <h2>Confidential payroll, on-chain.</h2>
+            <p>
+              Pay your team without exposing salaries. Verifiable by auditors,
+              invisible to everyone else.
+            </p>
           </div>
         </div>
       </div>

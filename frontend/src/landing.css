@@ -193,17 +193,18 @@
 /* Auth — split screen */
 .auth-split { min-height: 100dvh; display: grid; grid-template-columns: 1fr 1fr; }
 .auth-left {
-  position: relative; padding: 40px; display: flex; align-items: center; justify-content: center;
+  position: relative; padding: 44px; display: flex;
   background:
-    radial-gradient(700px 420px at 30% 20%, rgba(59,130,246,0.14), transparent 60%),
-    radial-gradient(600px 420px at 80% 90%, rgba(16,185,129,0.12), transparent 60%),
-    var(--bg);
+    linear-gradient(160deg, rgba(7,11,22,0.62) 0%, rgba(7,11,22,0.86) 100%),
+    linear-gradient(120deg, rgba(59,130,246,0.30), rgba(16,185,129,0.22)),
+    url('https://images.unsplash.com/photo-1639322537228-f710d846310a?auto=format&fit=crop&w=1400&q=80');
+  background-size: cover; background-position: center;
   border-right: 1px solid var(--border-soft);
 }
-.auth-left-inner { max-width: 380px; width: 100%; }
-.auth-left-inner .lp-brand { margin-bottom: 22px; }
-.auth-left-inner h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); letter-spacing: -0.03em; font-weight: 700; margin: 0 0 28px; line-height: 1.1; }
-.auth-preview { padding: 20px; }
+.auth-left-overlay { display: flex; flex-direction: column; justify-content: space-between; width: 100%; }
+.auth-left-text { max-width: 420px; }
+.auth-left-text h2 { font-size: clamp(1.8rem, 3vw, 2.6rem); letter-spacing: -0.03em; font-weight: 700; margin: 0 0 14px; line-height: 1.08; }
+.auth-left-text p { color: rgba(234,240,250,0.82); font-size: 1.02rem; line-height: 1.6; margin: 0; }
 .auth-back {
   position: absolute; top: 28px; left: 28px; display: inline-flex; align-items: center; gap: 6px;
   background: none; border: none; color: var(--text-2); font-family: var(--lp-font); font-size: 0.9rem; font-weight: 600; cursor: pointer;
