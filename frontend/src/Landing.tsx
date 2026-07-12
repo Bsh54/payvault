@@ -13,12 +13,10 @@ import { EXPLORER, DEMO_PUBLIC_TX, DEMO_CONFIDENTIAL_TX, PAYROLL_VAULT_ADDRESS }
 
 export function Landing({
   onStart,
-  onVerify,
   onAudit,
   onMyPay,
 }: {
   onStart: () => void;
-  onVerify: () => void;
   onAudit: () => void;
   onMyPay: () => void;
 }) {
@@ -33,8 +31,8 @@ export function Landing({
           <span>PayVault</span>
         </div>
         <div className="lp-nav-actions">
-          <button className="lp-btn lp-btn-ghost" onClick={onVerify}>
-            Verify
+          <button className="lp-btn lp-btn-ghost" onClick={onAudit}>
+            Audit
           </button>
           <button className="lp-btn lp-btn-primary" onClick={onStart}>
             Get started <ArrowRight size={16} weight="bold" />
@@ -188,27 +186,21 @@ export function Landing({
           </div>
           <div className="lp-footer-cols">
             <div className="lp-footer-col">
-              <h4>Product</h4>
-              <a href="#how">How it works</a>
-              <button className="lp-footer-link" onClick={onStart}>Open the app</button>
-            </div>
-            <div className="lp-footer-col">
               <h4>Access</h4>
               <button className="lp-footer-link" onClick={onStart}>For companies</button>
               <button className="lp-footer-link" onClick={onAudit}>For auditors</button>
               <button className="lp-footer-link" onClick={onMyPay}>For employees</button>
             </div>
             <div className="lp-footer-col">
+              <h4>Product</h4>
+              <a href="#how">How it works</a>
+              <button className="lp-footer-link" onClick={onStart}>Open the app</button>
+            </div>
+            <div className="lp-footer-col">
               <h4>Resources</h4>
-              <button className="lp-footer-link" onClick={onVerify}>Verify on-chain</button>
               <a href="https://github.com/Bsh54/payvault" target="_blank" rel="noreferrer">GitHub</a>
               <a href={`${EXPLORER}/address/${PAYROLL_VAULT_ADDRESS}`} target="_blank" rel="noreferrer">Smart contract</a>
               <a href="https://docs.noxprotocol.io" target="_blank" rel="noreferrer">Nox docs</a>
-            </div>
-            <div className="lp-footer-col">
-              <h4>Network</h4>
-              <a href={EXPLORER} target="_blank" rel="noreferrer">Ethereum Sepolia</a>
-              <span className="lp-footer-note">Testnet · free to try</span>
             </div>
           </div>
         </div>

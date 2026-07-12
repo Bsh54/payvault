@@ -47,7 +47,7 @@ import {
 } from "./lib/payvault";
 import { Landing } from "./Landing";
 
-type View = "landing" | "app" | "verify" | "audit" | "mypay";
+type View = "landing" | "app" | "audit" | "mypay";
 type Section = "overview" | "payroll" | "funding" | "auditors";
 
 const TITLES: Record<Section, string> = {
@@ -67,7 +67,6 @@ function parsePath(): string[] {
 function viewFromPath(): View {
   const [root] = parsePath();
   if (root === "app") return "app";
-  if (root === "verify") return "verify";
   if (root === "audit") return "audit";
   if (root === "mypay") return "mypay";
   return "landing";
@@ -102,7 +101,7 @@ export function App() {
 
   function go(v: View) {
     const map: Record<View, string> = {
-      app: "/app/overview", verify: "/verify", audit: "/audit", mypay: "/mypay", landing: "/",
+      app: "/app/overview", audit: "/audit", mypay: "/mypay", landing: "/",
     };
     navigate(map[v]);
     setView(v);
@@ -131,15 +130,10 @@ export function App() {
     return (
       <Landing
         onStart={() => go("app")}
-        onVerify={() => go("verify")}
         onAudit={() => go("audit")}
         onMyPay={() => go("mypay")}
       />
     );
-  }
-
-  if (view === "verify") {
-    return <VerifyPage onBack={() => go("landing")} />;
   }
 
   if (view === "audit") {
@@ -341,49 +335,6 @@ function OverviewPanel({ onGo }: { onGo: (s: Section) => void }) {
         </div>
       </div>
     </>
-  );
-}
-
-/* ---------------- Public verification page (standalone, no wallet) ---------------- */
-
-function VerifyPage({ onBack }: { onBack: () => void }) {
-  return (
-    <div className="lp verify">
-      <header className="lp-nav">
-        <button className="auth-back" onClick={onBack}>
-          <ArrowLeft size={16} weight="bold" /> Home
-        </button>
-        <a
-          className="lp-btn lp-btn-ghost"
-          href={`${EXPLORER}/address/${PAYROLL_VAULT_ADDRESS}`}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Contract on Etherscan <ArrowSquareOut size={15} weight="bold" />
-        </a>
-      </header>
-
-      <section className="verify-hero">
-        <span className="eyebrow">Public · no account needed</span>
-        <h1>Verify PayVault on-chain.</h1>
-        <p className="lp-sub">
-          Anyone can independently check that salaries are encrypted. Inspect any
-          company below, or read the contract directly on the Ethereum explorer.
-        </p>
-        <a
-          className="lp-btn lp-btn-primary lp-btn-lg"
-          href={`${EXPLORER}/address/${PAYROLL_VAULT_ADDRESS}`}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Open contract on Etherscan <ArrowSquareOut size={17} weight="bold" />
-        </a>
-      </section>
-
-      <section className="verify-body">
-        <PublicPanel defaultCompany={DEMO_COMPANY as Address} />
-      </section>
-    </div>
   );
 }
 
@@ -852,83 +803,6 @@ function AuditorsPanel() {
         <div className="mini-step"><span className="hint-num">2</span> Share the auditor page&nbsp;<a href="/audit" target="_blank" rel="noreferrer">/audit&nbsp;<ArrowSquareOut size={12} weight="bold" /></a></div>
         <div className="mini-step"><span className="hint-num">3</span> They connect and decrypt the total — never a salary.</div>
       </div>
-    </div>
-  );
-}
-
-/* ---------------- Public ---------------- */
-
-function PublicPanel({ defaultCompany }: { defaultCompany?: Address }) {
-  const [company, setCompany] = useState<string>(defaultCompany || "");
-  const [count, setCount] = useState<number | null>(null);
-  const [init, setInit] = useState<boolean | null>(null);
-  const [status, setStatus] = useState("");
-
-  useEffect(() => {
-    if (defaultCompany) setCompany(defaultCompany);
-  }, [defaultCompany]);
-
-  async function look() {
-    setStatus("");
-    if (!isAddress(company, { strict: false }))
-      return setStatus("❌ Invalid company address (need 0x + 40 hex chars)");
-    try {
-      const c = readVault();
-      const n = (await c.read.employeeCount([company as Address])) as bigint;
-      const i = (await c.read.isInitialized([company as Address])) as boolean;
-      setCount(Number(n));
-      setInit(i);
-    } catch (e: any) {
-      setStatus("❌ " + (e.message || String(e)));
-    }
-  }
-
-  return (
-    <div className="card">
-      <h3>What the public sees</h3>
-      <p className="muted">
-        Anyone can read the chain. Here is <em>everything</em> a public observer learns about a
-        company's payroll. Notice there are <strong>no amounts</strong>.
-      </p>
-      <label>Company wallet</label>
-      <div className="row">
-        <input placeholder="0x…" value={company} onChange={(e) => setCompany(e.target.value)} />
-        <button className="btn" onClick={look}>Inspect</button>
-      </div>
-      {count !== null && (
-        <div className="public-out">
-          <div className="stat">
-            <span className="big">{count}</span>
-            <span>employees on payroll</span>
-          </div>
-          <div className="stat">
-            <span className="big">{init ? "Active" : "None"}</span>
-            <span>payroll status</span>
-          </div>
-          <div className="stat">
-            <span className="big">Hidden</span>
-            <span>salary amounts (encrypted)</span>
-          </div>
-        </div>
-      )}
-
-      <div className="beforeafter">
-        <h4>See it on the public block explorer</h4>
-        <div className="ba-grid">
-          <a className="ba-card before" href={`${EXPLORER}/tx/${DEMO_PUBLIC_TX}`} target="_blank" rel="noreferrer">
-            <span className="ba-tag">Normal payment</span>
-            <span className="ba-amt">5,000 visible</span>
-            <span className="ba-note">A plain transfer. Anyone reads the amount.</span>
-          </a>
-          <a className="ba-card after" href={`${EXPLORER}/tx/${DEMO_CONFIDENTIAL_TX}`} target="_blank" rel="noreferrer">
-            <span className="ba-tag">With PayVault</span>
-            <span className="ba-amt">Encrypted</span>
-            <span className="ba-note">Same operation. The salary is an unreadable handle.</span>
-          </a>
-        </div>
-      </div>
-
-      {status && <div className="status">{status}</div>}
     </div>
   );
 }
