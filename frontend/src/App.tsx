@@ -417,12 +417,9 @@ function AuditPage({ onBack }: { onBack: () => void }) {
 
 /* ---------------- Employee dashboard (standalone) ---------------- */
 
-type EmpTab = "pay" | "privacy";
-
 function MyPayPage({ onBack }: { onBack: () => void }) {
   const { address } = useAccount();
   const { disconnect } = useDisconnect();
-  const [tab, setTab] = useState<EmpTab>("pay");
 
   if (!address)
     return (
@@ -448,8 +445,6 @@ function MyPayPage({ onBack }: { onBack: () => void }) {
       </div>
     );
 
-  const titles: Record<EmpTab, string> = { pay: "My pay", privacy: "Privacy" };
-
   return (
     <div className="dash">
       <aside className="sidebar">
@@ -467,11 +462,8 @@ function MyPayPage({ onBack }: { onBack: () => void }) {
 
         <nav className="side-nav">
           <div className="side-group">Employee</div>
-          <button className={`side-item ${tab === "pay" ? "on" : ""}`} onClick={() => setTab("pay")}>
+          <button className="side-item on">
             <Money size={18} weight="bold" /> <span>My pay</span>
-          </button>
-          <button className={`side-item ${tab === "privacy" ? "on" : ""}`} onClick={() => setTab("privacy")}>
-            <LockKey size={18} weight="bold" /> <span>Privacy</span>
           </button>
         </nav>
 
@@ -485,7 +477,7 @@ function MyPayPage({ onBack }: { onBack: () => void }) {
 
       <div className="content">
         <header className="content-top">
-          <h1>{titles[tab]}</h1>
+          <h1>My pay</h1>
           <div className="content-top-right">
             <a
               className="verify-link"
@@ -501,39 +493,13 @@ function MyPayPage({ onBack }: { onBack: () => void }) {
         </header>
 
         <main className="content-main">
-          {tab === "pay" && <EmployeePanel />}
-          {tab === "privacy" && <EmployeePrivacyPanel />}
+          <EmployeePanel />
         </main>
       </div>
     </div>
   );
 }
 
-function EmployeePrivacyPanel() {
-  return (
-    <div className="card">
-      <h3>How your pay stays private</h3>
-      <ul className="privacy-list">
-        <li>
-          <LockKey size={18} weight="bold" />
-          <span>Your pay is a confidential cPAY balance (ERC-7984), encrypted on-chain.</span>
-        </li>
-        <li>
-          <EyeSlash size={18} weight="bold" />
-          <span>No one reads your amount on the public chain, not colleagues, not auditors.</span>
-        </li>
-        <li>
-          <LockKeyOpen size={18} weight="bold" />
-          <span>Only your wallet can decrypt it, through the Nox handle gateway.</span>
-        </li>
-        <li>
-          <ShieldCheck size={18} weight="bold" />
-          <span>Auditors verify the company total, never a single salary.</span>
-        </li>
-      </ul>
-    </div>
-  );
-}
 
 /* ---------------- Payroll ---------------- */
 
