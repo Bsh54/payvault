@@ -280,13 +280,6 @@ function OverviewPanel({ onGo }: { onGo: (s: Section) => void }) {
             <span className="kpi-label">Total payroll (encrypted)</span>
           </div>
         </div>
-        <div className="kpi">
-          <span className="kpi-icon"><CheckCircle size={20} weight="bold" /></span>
-          <div>
-            <span className="kpi-value">{funded && hasEmployees ? "Ready" : funded ? "Funded" : "Setup"}</span>
-            <span className="kpi-label">Payroll status</span>
-          </div>
-        </div>
       </div>
 
       <div className="card">
