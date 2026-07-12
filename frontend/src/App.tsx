@@ -600,47 +600,34 @@ function FundingPanel() {
   }
 
   return (
-    <>
-      <div className="card">
-        <h3>Public funding (Sablier)</h3>
-        <p className="muted">
-          Fund your payroll with one <strong>public</strong> Sablier stream. The chain shows only
-          this aggregate budget, never the per-employee split, which stays encrypted in Nox.
-        </p>
-        {streamId > 0n ? (
-          <div className="public-out">
-            <div className="stat">
-              <span className="big">#{streamId.toString()}</span>
-              <span>Sablier stream</span>
-            </div>
-            <div className="stat">
-              <span className="big">{formatUnits(budget, 18)}</span>
-              <span>PayUSD budget (public)</span>
-            </div>
-            <div className="stat">
-              <span className="big">Hidden</span>
-              <span>per-employee split</span>
-            </div>
+    <div className="card">
+      <h3>Public funding (Sablier)</h3>
+      {streamId > 0n && (
+        <div className="public-out" style={{ marginBottom: 20 }}>
+          <div className="stat">
+            <span className="big">#{streamId.toString()}</span>
+            <span>Sablier stream</span>
           </div>
-        ) : (
-          <p className="muted">No funding stream yet. Create one below.</p>
-        )}
-      </div>
+          <div className="stat">
+            <span className="big">{formatUnits(budget, 18)}</span>
+            <span>PayUSD budget (public)</span>
+          </div>
+          <div className="stat">
+            <span className="big">Hidden</span>
+            <span>per-employee split</span>
+          </div>
+        </div>
+      )}
 
-      <div className="card">
-        <h3>Fund payroll</h3>
-        <label>Budget (PayUSD)</label>
+      <label>Budget (PayUSD)</label>
+      <div className="row">
         <input placeholder="e.g. 120000" value={amount} onChange={(e) => setAmount(e.target.value)} />
-        <p className="muted" style={{ marginTop: 10 }}>
-          This runs 4 quick steps: mint test PayUSD, approve Sablier, create the public stream to your
-          vault, and record it. Confirm each in your wallet.
-        </p>
         <button className="btn" disabled={busy} onClick={fund}>
-          <Money size={17} weight="bold" /> Fund payroll
+          <Money size={17} weight="bold" /> {streamId > 0n ? "Add funds" : "Fund payroll"}
         </button>
-        {status && <div className="status">{status}</div>}
       </div>
-    </>
+      {status && <div className="status">{status}</div>}
+    </div>
   );
 }
 
