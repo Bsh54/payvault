@@ -611,7 +611,7 @@ function FundingPanel() {
       await wait(sendVaultTx(walletClient, "linkFunding", [nextId, value]));
 
       setStep(5);
-      setResult({ ok: true, msg: "Payroll funded. The public sees the total; the split stays encrypted." });
+      setResult({ ok: true, msg: "Payroll funded." });
       refresh();
     } catch (e: any) {
       setResult({ ok: false, msg: e.shortMessage || e.message || String(e) });
