@@ -1014,12 +1014,6 @@ function AuditorsPanel() {
           ))}
         </div>
       )}
-
-      <div className="mini-steps">
-        <div className="mini-step"><span className="hint-num">1</span> Grant access to the auditor's wallet above.</div>
-        <div className="mini-step"><span className="hint-num">2</span> Share the auditor page&nbsp;<a href="/audit" target="_blank" rel="noreferrer">/audit&nbsp;<ArrowSquareOut size={12} weight="bold" /></a></div>
-        <div className="mini-step"><span className="hint-num">3</span> They connect and decrypt the total — never a salary.</div>
-      </div>
     </div>
   );
 }
