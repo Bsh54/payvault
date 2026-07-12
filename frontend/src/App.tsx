@@ -21,6 +21,8 @@ import {
   EyeSlash,
   Check,
   CircleNotch,
+  CheckCircle,
+  XCircle,
 } from "@phosphor-icons/react";
 import {
   readVault,
@@ -521,6 +523,18 @@ function PayrollPanel() {
   );
 }
 
+/* Animated success / error banner (no emojis) */
+function ResultBanner({ ok, children }: { ok: boolean; children: React.ReactNode }) {
+  return (
+    <div className={`result ${ok ? "ok" : "err"}`}>
+      <span className="result-icon">
+        {ok ? <CheckCircle size={44} weight="fill" /> : <XCircle size={44} weight="fill" />}
+      </span>
+      <span className="result-msg">{children}</span>
+    </div>
+  );
+}
+
 /* ---------------- Funding ---------------- */
 
 function FundingPanel() {
@@ -529,7 +543,7 @@ function FundingPanel() {
   const [streamId, setStreamId] = useState<bigint>(0n);
   const [budget, setBudget] = useState<bigint>(0n);
   const [amount, setAmount] = useState("120000");
-  const [status, setStatus] = useState("");
+  const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState(0);
 
@@ -558,22 +572,22 @@ function FundingPanel() {
     );
 
   async function fund() {
-    setStatus("");
+    setResult(null);
     let value: bigint;
     try {
       value = parseUnits(amount || "0", 18);
       if (value <= 0n) throw new Error();
     } catch {
-      return setStatus("❌ Enter a positive budget amount");
+      return setResult({ ok: false, msg: "Enter a positive budget amount." });
     }
-    if (!walletClient) return setStatus("❌ Wallet not ready");
+    if (!walletClient) return setResult({ ok: false, msg: "Wallet not ready." });
     const wait = async (p: Promise<`0x${string}`>) => {
       const h = await p;
       await publicClient().waitForTransactionReceipt({ hash: h });
       return h;
     };
     setBusy(true);
-    setStatus("");
+    setResult(null);
     try {
       setStep(1);
       await wait(sendTo(walletClient, PAYUSD_ADDRESS, PAYUSD_ABI, "mint", [address!, value]));
@@ -597,10 +611,10 @@ function FundingPanel() {
       await wait(sendVaultTx(walletClient, "linkFunding", [nextId, value]));
 
       setStep(5);
-      setStatus("✅ Payroll funded. The public sees the total; the split stays encrypted.");
+      setResult({ ok: true, msg: "Payroll funded. The public sees the total; the split stays encrypted." });
       refresh();
     } catch (e: any) {
-      setStatus("❌ " + (e.shortMessage || e.message || String(e)));
+      setResult({ ok: false, msg: e.shortMessage || e.message || String(e) });
     } finally {
       setBusy(false);
       setStep(0);
@@ -667,7 +681,7 @@ function FundingPanel() {
         </button>
       )}
 
-      {status && <div className="status">{status}</div>}
+      {result && <ResultBanner ok={result.ok}>{result.msg}</ResultBanner>}
     </div>
   );
 }
