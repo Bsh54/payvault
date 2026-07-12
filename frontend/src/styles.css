@@ -194,12 +194,21 @@ input:focus { outline: none; border-color: var(--primary); }
 
 /* Table */
 table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-th, td { text-align: left; padding: .65em .4em; border-bottom: 1px solid var(--border-soft); font-size: .9rem; }
+th, td { text-align: left; padding: .8em .5em; border-bottom: 1px solid var(--border-soft); font-size: .9rem; vertical-align: middle; }
 th { color: var(--text-3); font-weight: 600; }
+th:last-child, td.row-actions { text-align: right; }
 .mono, td.mono { font-family: ui-monospace, "DM Mono", monospace; font-variant-numeric: tabular-nums; }
-.row-actions { display: flex; gap: 28px; align-items: center; }
-.row-actions .link { display: inline-flex; align-items: center; gap: 4px; text-decoration: none; }
-.row-actions a.link:hover { text-decoration: none; color: var(--green-2); }
+.row-actions { display: flex; gap: 8px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+.row-actions .link {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 12px; border-radius: 9px;
+  border: 1px solid var(--border-soft); background: var(--bg-card);
+  color: var(--text-2); font-size: .82rem; font-weight: 600; text-decoration: none;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.row-actions .link:hover { border-color: var(--primary); color: var(--text); background: rgba(59,130,246,0.08); text-decoration: none; }
+.row-actions .link svg { color: var(--text-3); transition: color .15s; }
+.row-actions .link:hover svg { color: var(--green-2); }
 
 /* Stats */
 .public-out { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
@@ -259,6 +268,7 @@ td .spin { vertical-align: middle; margin-right: 6px; color: var(--text-3); }
 .employer-chip:hover { border-color: var(--primary); color: var(--text); text-decoration: none; }
 .employer-chip svg:last-child { color: var(--text-3); }
 .pay-history { margin-top: 22px; }
-.link.danger { color: #f87171; }
-.link.danger:hover { color: #ef4444; }
+.row-actions .link.danger { color: #f87171; border-color: rgba(248,113,113,0.28); }
+.row-actions .link.danger:hover { color: #fff; border-color: #ef4444; background: rgba(239,68,68,0.14); }
+.row-actions .link.danger:hover svg { color: #ef4444; }
 .link:disabled { opacity: .5; cursor: wait; }

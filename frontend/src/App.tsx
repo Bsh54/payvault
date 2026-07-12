@@ -18,6 +18,7 @@ import {
   PencilSimple,
   SquaresFour,
   ArrowRight,
+  Eye,
   EyeSlash,
   Check,
   CircleNotch,
@@ -712,11 +713,11 @@ function PayrollPanel() {
                       {reveal[e] ? (reveal[e] === "denied" ? "Denied" : reveal[e]) : "Encrypted"}
                     </td>
                     <td className="row-actions">
-                      <button className="link" onClick={() => revealSalary(e)}>reveal</button>
-                      <button className="link" onClick={() => { setEditing(e); setEditSalary(""); setResult(null); }}>edit</button>
-                      <button className="link danger" disabled={busy} onClick={() => removeEmployee(e)}>remove</button>
+                      <button className="link" onClick={() => revealSalary(e)}><Eye size={13} weight="bold" /> reveal</button>
+                      <button className="link" onClick={() => { setEditing(e); setEditSalary(""); setResult(null); }}><PencilSimple size={13} weight="bold" /> edit</button>
+                      <button className="link danger" disabled={busy} onClick={() => removeEmployee(e)}><XCircle size={13} weight="bold" /> remove</button>
                       <a className="link" href={`${EXPLORER}/address/${e}`} target="_blank" rel="noreferrer">
-                        verify <ArrowSquareOut size={12} weight="bold" />
+                        <ArrowSquareOut size={13} weight="bold" /> verify
                       </a>
                     </td>
                   </>
