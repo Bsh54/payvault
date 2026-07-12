@@ -8,6 +8,9 @@ import {
   SealCheck,
   Money,
   CheckCircle,
+  Buildings,
+  MagnifyingGlass,
+  Wallet,
 } from "@phosphor-icons/react";
 import { EXPLORER, DEMO_PUBLIC_TX, DEMO_CONFIDENTIAL_TX, PAYROLL_VAULT_ADDRESS } from "./lib/payvault";
 
@@ -148,6 +151,34 @@ export function Landing({
             Give your auditor read access to the <strong>total payroll</strong>, never to
             individual salaries. Privacy <em>and</em> compliance, finally together.
           </p>
+        </div>
+      </section>
+
+      {/* Role selector */}
+      <section className="lp-roles">
+        <div className="lp-section-head">
+          <span className="eyebrow">I'm a…</span>
+          <h2>Built for every side of payroll.</h2>
+        </div>
+        <div className="lp-roles-grid">
+          <button className="lp-card lp-role" onClick={onStart}>
+            <span className="lp-role-icon"><Buildings size={24} weight="duotone" /></span>
+            <h3>Company</h3>
+            <p>Fund payroll, add employees and run confidential pay.</p>
+            <span className="lp-role-cta">Open dashboard <ArrowRight size={14} weight="bold" /></span>
+          </button>
+          <button className="lp-card lp-role" onClick={onAudit}>
+            <span className="lp-role-icon"><MagnifyingGlass size={24} weight="duotone" /></span>
+            <h3>Auditor</h3>
+            <p>Verify the total a company grants you, never a salary.</p>
+            <span className="lp-role-cta">Open auditor <ArrowRight size={14} weight="bold" /></span>
+          </button>
+          <button className="lp-card lp-role" onClick={onMyPay}>
+            <span className="lp-role-icon"><Wallet size={24} weight="duotone" /></span>
+            <h3>Employee</h3>
+            <p>See your own pay, encrypted for everyone else.</p>
+            <span className="lp-role-cta">Open my pay <ArrowRight size={14} weight="bold" /></span>
+          </button>
         </div>
       </section>
 

@@ -160,6 +160,16 @@
 .lp-feature em { color: var(--text); font-style: normal; font-weight: 700; }
 
 /* Built with — logo chips */
+/* Role selector */
+.lp-roles { max-width: 1040px; margin: 0 auto; padding: 72px 24px 24px; }
+.lp-roles-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.lp-role { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; text-align: left; cursor: pointer; font-family: var(--lp-font); }
+.lp-role-icon { width: 46px; height: 46px; border-radius: 12px; background: var(--primary-soft); color: var(--primary); display: flex; align-items: center; justify-content: center; margin-bottom: 4px; }
+.lp-role h3 { font-size: 1.15rem; margin: 0; letter-spacing: -0.01em; font-weight: 700; }
+.lp-role p { color: var(--text-2); font-size: 0.92rem; line-height: 1.5; margin: 0; }
+.lp-role-cta { display: inline-flex; align-items: center; gap: 5px; color: var(--green-2); font-weight: 700; font-size: 0.85rem; margin-top: 8px; }
+@media (max-width: 760px) { .lp-roles-grid { grid-template-columns: 1fr; } }
+
 .lp-trust { max-width: 900px; margin: 0 auto; padding: 56px 24px; text-align: center; }
 .lp-trust > span { display: block; color: var(--text-3); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 700; margin-bottom: 22px; }
 .lp-trust-logos { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
