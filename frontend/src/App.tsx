@@ -241,13 +241,11 @@ function OverviewPanel({ onGo }: { onGo: (s: Section) => void }) {
     }
   }
 
-  const Step = ({ done, n, title, desc, cta, to }: any) => (
-    <button className={`step-row ${done ? "done" : ""}`} onClick={() => onGo(to)}>
-      <span className="step-mark">
-        {done ? <CheckCircle size={22} weight="fill" /> : <Circle size={22} weight="bold" />}
-      </span>
+  const Step = ({ n, title, desc, cta, to }: any) => (
+    <button className="step-row" onClick={() => onGo(to)}>
+      <span className="step-num">{n}</span>
       <span className="step-body">
-        <span className="step-title">{n}. {title}</span>
+        <span className="step-title">{title}</span>
         <span className="step-desc">{desc}</span>
       </span>
       <span className="step-cta">{cta} <ArrowRight size={15} weight="bold" /></span>
