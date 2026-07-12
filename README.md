@@ -46,8 +46,8 @@ Off-chain TEE (Nox Runner) computes on encrypted data
 
 | Contract | Address |
 |---|---|
-| **PayrollVault** (also the cPAY ERC-7984 token) | [`0x5c37c25e88edfce2b0b19e11f74c9422a42dd5cc`](https://sepolia.etherscan.io/address/0x5c37c25e88edfce2b0b19e11f74c9422a42dd5cc) |
-| **PayUSD** (test payroll token) | [`0xf187422619859a5be5a2db1a275da7a1532d930a`](https://sepolia.etherscan.io/address/0xf187422619859a5be5a2db1a275da7a1532d930a) |
+| **PayrollVault** (also the cPAY ERC-7984 token) | [`0xa775bf4d13d70984959a06ef4f61e0e68d56e0f5`](https://sepolia.etherscan.io/address/0xa775bf4d13d70984959a06ef4f61e0e68d56e0f5) |
+| **PayUSD** (test payroll token) | [`0x35e3be25997a21a34ff79a2562e13a9d1d06937f`](https://sepolia.etherscan.io/address/0x35e3be25997a21a34ff79a2562e13a9d1d06937f) |
 | **Sablier Lockup** (external, unmodified) | [`0xe61cb9153356419bdaD0A8767c059f92d221a3C4`](https://sepolia.etherscan.io/address/0xe61cb9153356419bdaD0A8767c059f92d221a3C4) |
 
 ## Repository layout
