@@ -88,7 +88,7 @@ export function Landing({
           <div className="lp-ba-head">
             <Eye size={20} weight="bold" /> <span>A normal payment</span>
           </div>
-          <img className="lp-ba-shot" src="/normal-payement.png" alt="Public transaction on Etherscan, amount visible" />
+          <img className="lp-ba-shot" src="/normal-payement.png?v=2" alt="Public transaction on Etherscan, amount visible" />
           <span className="lp-ba-link">View on Etherscan <ArrowRight size={14} /></span>
         </a>
 
@@ -98,7 +98,7 @@ export function Landing({
           <div className="lp-ba-head">
             <EyeSlash size={20} weight="bold" /> <span>With PayVault</span>
           </div>
-          <img className="lp-ba-shot" src="/encrypted.png" alt="Confidential transaction on Etherscan, amount hidden" />
+          <img className="lp-ba-shot" src="/encrypted.png?v=2" alt="Confidential transaction on Etherscan, amount hidden" />
           <span className="lp-ba-link">View on Etherscan <ArrowRight size={14} /></span>
         </a>
       </section>
