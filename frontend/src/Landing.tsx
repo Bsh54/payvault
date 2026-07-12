@@ -58,27 +58,10 @@ export function Landing({
           </div>
         </div>
 
-        {/* Real mini-representation of a confidential payslip */}
-        <div className="lp-payslip lp-card fade-up d2">
-          <div className="lp-payslip-head">
-            <span>Payroll · March</span>
-            <span className="lp-payslip-badge"><LockKey size={13} weight="fill" /> Encrypted</span>
-          </div>
-          <div className="lp-payslip-row">
-            <span className="mono">0x8BEE…9288</span>
-            <span className="lp-enc"><LockKey size={13} /> ••• •••</span>
-          </div>
-          <div className="lp-payslip-row">
-            <span className="mono">0x06Ef…bDf9</span>
-            <span className="lp-enc"><LockKey size={13} /> ••• •••</span>
-          </div>
-          <div className="lp-payslip-row">
-            <span className="mono">0x71E6…8025</span>
-            <span className="lp-enc"><LockKey size={13} /> ••• •••</span>
-          </div>
-          <div className="lp-payslip-foot">
-            <span><CheckCircle size={15} weight="fill" /> Auditor can verify the total</span>
-          </div>
+        {/* Representative product visual */}
+        <div className="lp-hero-visual fade-up d2">
+          <img className="lp-hero-img" src="/hero-dashboard.jpg?v=1" alt="Confidential payroll dashboard" />
+          <span className="lp-hero-badge"><LockKey size={14} weight="fill" /> Salaries encrypted on-chain</span>
         </div>
       </section>
 

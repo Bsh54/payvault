@@ -1,3 +1,5 @@
+<p align="center"><img src="frontend/public/payvault-logo.png" width="340" alt="PayVault" /></p>
+
 # PayVault — Confidential Payroll & Treasury on Nox
 
 > Pay your team on-chain **without ever revealing salaries** — while staying fully auditable.
