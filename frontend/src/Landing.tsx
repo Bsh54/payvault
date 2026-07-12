@@ -8,6 +8,8 @@ import {
   SealCheck,
   Money,
   CheckCircle,
+  UsersThree,
+  GithubLogo,
 } from "@phosphor-icons/react";
 import { EXPLORER, DEMO_PUBLIC_TX, DEMO_CONFIDENTIAL_TX, PAYROLL_VAULT_ADDRESS } from "./lib/payvault";
 
@@ -30,6 +32,9 @@ export function Landing({
         <div className="lp-nav-actions">
           <button className="lp-btn lp-btn-ghost" onClick={onMyPay}>Employees</button>
           <button className="lp-btn lp-btn-ghost" onClick={onAudit}>Auditors</button>
+          <a className="lp-nav-icon" href="https://github.com/Bsh54/payvault" target="_blank" rel="noreferrer" aria-label="GitHub">
+            <GithubLogo size={20} weight="fill" />
+          </a>
           <button className="lp-btn lp-btn-primary" onClick={onStart}>
             Get started <ArrowRight size={16} weight="bold" />
           </button>
@@ -58,11 +63,34 @@ export function Landing({
           </div>
         </div>
 
-        {/* Representative product visual */}
-        <div className="lp-hero-visual fade-up d2">
-          <img className="lp-hero-img" src="/hero-team.jpg?v=1" alt="A team getting paid confidentially" />
-          <span className="lp-hero-badge"><LockKey size={14} weight="fill" /> Salaries encrypted on-chain</span>
+        {/* Product preview — stylized dashboard mockup */}
+        <div className="lp-mock fade-up d2">
+          <div className="lp-mock-bar">
+            <span className="lp-mock-dots"><i></i><i></i><i></i></span>
+            <span className="lp-mock-title">PayVault · Payroll</span>
+            <span className="lp-mock-badge"><LockKey size={12} weight="fill" /> Encrypted</span>
+          </div>
+          <div className="lp-mock-kpis">
+            <div className="lp-mock-kpi"><span className="lp-mock-k">120,000</span><span className="lp-mock-l">Budget</span></div>
+            <div className="lp-mock-kpi"><span className="lp-mock-k">3</span><span className="lp-mock-l">Employees</span></div>
+            <div className="lp-mock-kpi"><span className="lp-mock-k"><EyeSlash size={18} weight="bold" /></span><span className="lp-mock-l">Total payroll</span></div>
+          </div>
+          <div className="lp-mock-table">
+            <div className="lp-mock-row"><span className="mono">0x8BEE…9288</span><span className="lp-enc"><LockKey size={12} /> ••• •••</span></div>
+            <div className="lp-mock-row"><span className="mono">0x06Ef…bDf9</span><span className="lp-enc"><LockKey size={12} /> ••• •••</span></div>
+            <div className="lp-mock-row"><span className="mono">0x71E6…8025</span><span className="lp-enc"><LockKey size={12} /> ••• •••</span></div>
+          </div>
+          <div className="lp-mock-foot"><CheckCircle size={15} weight="fill" /> Auditor can verify the total, never a salary</div>
         </div>
+      </section>
+
+      {/* Trust strip — real proof, no invented numbers */}
+      <section className="lp-trustbar">
+        <span className="lp-trust-item"><ShieldCheck size={16} weight="fill" /> Deployed on ETH Sepolia</span>
+        <span className="lp-trust-item"><GithubLogo size={16} weight="fill" /> Open source</span>
+        <span className="lp-trust-item"><SealCheck size={16} weight="fill" /> Contract verifiable on Etherscan</span>
+        <span className="lp-trust-item"><LockKey size={16} weight="fill" /> Built on iExec Nox</span>
+        <span className="lp-trust-item"><UsersThree size={16} weight="fill" /> Selective disclosure</span>
       </section>
 
       {/* Before / After proof on the public explorer */}
@@ -72,6 +100,7 @@ export function Landing({
             <Eye size={20} weight="bold" /> <span>A normal payment</span>
           </div>
           <img className="lp-ba-shot" src="/normal-payement.png?v=2" alt="Public transaction on Etherscan, amount visible" />
+          <p className="lp-ba-cap">Anyone can read the amount: 5,000 in plain sight.</p>
           <span className="lp-ba-link">View on Etherscan <ArrowRight size={14} /></span>
         </a>
 
@@ -82,6 +111,7 @@ export function Landing({
             <EyeSlash size={20} weight="bold" /> <span>With PayVault</span>
           </div>
           <img className="lp-ba-shot" src="/encrypted.png?v=2" alt="Confidential transaction on Etherscan, amount hidden" />
+          <p className="lp-ba-cap">Same payment, amount encrypted. Nobody reads the salary.</p>
           <span className="lp-ba-link">View on Etherscan <ArrowRight size={14} /></span>
         </a>
       </section>
