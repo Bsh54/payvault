@@ -17,9 +17,8 @@ import {
   ArrowSquareOut,
   PencilSimple,
   SquaresFour,
-  CheckCircle,
-  Circle,
   ArrowRight,
+  EyeSlash,
 } from "@phosphor-icons/react";
 import {
   readVault,
@@ -274,10 +273,12 @@ function OverviewPanel({ onGo }: { onGo: (s: Section) => void }) {
           <div>
             <span className="kpi-value">
               {total !== "" ? total : (
-                <button className="link" disabled={busy} onClick={decryptTotal}>Decrypt</button>
+                <button className="reveal-eye" disabled={busy} onClick={decryptTotal} title="Reveal the amount">
+                  <EyeSlash size={22} weight="bold" />
+                </button>
               )}
             </span>
-            <span className="kpi-label">Total payroll (encrypted)</span>
+            <span className="kpi-label">Total payroll</span>
           </div>
         </div>
       </div>

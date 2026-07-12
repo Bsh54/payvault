@@ -73,6 +73,9 @@ a:hover { text-decoration: underline; }
 .kpi-icon { width: 42px; height: 42px; border-radius: 11px; background: rgba(59,130,246,0.10); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .kpi > div { display: flex; flex-direction: column; }
 .kpi-value { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text); }
+.reveal-eye { background: none; border: none; cursor: pointer; color: var(--text-3); padding: 0; display: inline-flex; transition: color .15s; }
+.reveal-eye:hover { color: var(--green-2); }
+.reveal-eye:disabled { opacity: .5; cursor: wait; }
 .kpi-label { font-size: .8rem; color: var(--text-3); }
 .stack { display: flex; flex-direction: column; gap: 10px; }
 .stack .btn { margin-top: 0; justify-content: center; }
