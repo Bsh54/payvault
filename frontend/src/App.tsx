@@ -24,6 +24,7 @@ import {
   CircleNotch,
   CheckCircle,
   XCircle,
+  X,
   Plus,
 } from "@phosphor-icons/react";
 import {
@@ -694,34 +695,17 @@ function PayrollPanel() {
                   {paying[e] === "done" ? <CheckCircle size={14} weight="fill" className="paid-tick" /> : paying[e] === "pending" ? <CircleNotch size={14} weight="bold" className="spin" /> : null}
                   {short(e)}
                 </td>
-                {editing === e ? (
-                  <td colSpan={2}>
-                    <div className="amount-field inline">
-                      <input autoFocus type="number" inputMode="decimal" placeholder="New salary" value={editSalary} onChange={(ev) => setEditSalary(ev.target.value)} />
-                      <span className="amount-suffix">PayUSD</span>
-                    </div>
-                    <div className="row" style={{ marginTop: 8 }}>
-                      <button className="btn sm" disabled={busy} onClick={() => saveSalary(e)}>
-                        {busy ? <CircleNotch size={14} weight="bold" className="spin" /> : <LockKey size={14} weight="bold" />} Save
-                      </button>
-                      <button className="btn ghost sm" onClick={() => { setEditing(""); setEditSalary(""); }}>Cancel</button>
-                    </div>
-                  </td>
-                ) : (
-                  <>
-                    <td className="mono">
-                      {reveal[e] ? (reveal[e] === "denied" ? "Denied" : reveal[e]) : "Encrypted"}
-                    </td>
-                    <td className="row-actions">
-                      <button className="link" onClick={() => revealSalary(e)}><Eye size={13} weight="bold" /> reveal</button>
-                      <button className="link" onClick={() => { setEditing(e); setEditSalary(""); setResult(null); }}><PencilSimple size={13} weight="bold" /> edit</button>
-                      <button className="link danger" disabled={busy} onClick={() => removeEmployee(e)}><XCircle size={13} weight="bold" /> remove</button>
-                      <a className="link" href={`${EXPLORER}/address/${e}`} target="_blank" rel="noreferrer">
-                        <ArrowSquareOut size={13} weight="bold" /> verify
-                      </a>
-                    </td>
-                  </>
-                )}
+                <td className="mono">
+                  {reveal[e] ? (reveal[e] === "denied" ? "Denied" : reveal[e]) : "Encrypted"}
+                </td>
+                <td className="row-actions">
+                  <button className="link" onClick={() => revealSalary(e)}><Eye size={13} weight="bold" /> reveal</button>
+                  <button className="link" onClick={() => { setEditing(e); setEditSalary(""); setResult(null); }}><PencilSimple size={13} weight="bold" /> edit</button>
+                  <button className="link danger" disabled={busy} onClick={() => removeEmployee(e)}><XCircle size={13} weight="bold" /> remove</button>
+                  <a className="link" href={`${EXPLORER}/address/${e}`} target="_blank" rel="noreferrer">
+                    <ArrowSquareOut size={13} weight="bold" /> verify
+                  </a>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -729,6 +713,34 @@ function PayrollPanel() {
       )}
 
       {result && <ResultBanner ok={result.ok}>{result.msg}</ResultBanner>}
+
+      {editing && (
+        <div className="modal-overlay" onClick={() => { if (!busy) { setEditing(""); setEditSalary(""); } }}>
+          <div className="modal" onClick={(ev) => ev.stopPropagation()}>
+            <button className="modal-close" onClick={() => { setEditing(""); setEditSalary(""); }} aria-label="Close"><X size={18} weight="bold" /></button>
+            <div className="modal-icon"><PencilSimple size={22} weight="duotone" /></div>
+            <h3>Update salary</h3>
+            <p className="muted">
+              For <span className="mono">{short(editing)}</span>. The new amount is encrypted before it leaves your browser.
+            </p>
+            <label>New monthly salary</label>
+            <div className="amount-field">
+              <input autoFocus type="number" inputMode="decimal" placeholder="0"
+                value={editSalary}
+                onChange={(ev) => setEditSalary(ev.target.value)}
+                onKeyDown={(ev) => ev.key === "Enter" && saveSalary(editing as Address)}
+              />
+              <span className="amount-suffix">PayUSD</span>
+            </div>
+            <div className="row" style={{ marginTop: 18 }}>
+              <button className="btn" disabled={busy} onClick={() => saveSalary(editing as Address)}>
+                {busy ? <><CircleNotch size={17} weight="bold" className="spin" /> Encrypting…</> : <><LockKey size={17} weight="bold" /> Encrypt & update</>}
+              </button>
+              <button className="btn ghost" disabled={busy} onClick={() => { setEditing(""); setEditSalary(""); }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

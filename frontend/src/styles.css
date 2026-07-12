@@ -272,3 +272,28 @@ td .spin { vertical-align: middle; margin-right: 6px; color: var(--text-3); }
 .row-actions .link.danger:hover { color: #fff; border-color: #ef4444; background: rgba(239,68,68,0.14); }
 .row-actions .link.danger:hover svg { color: #ef4444; }
 .link:disabled { opacity: .5; cursor: wait; }
+
+/* Modal (edit salary, etc.) */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
+  background: rgba(4, 8, 18, 0.66); backdrop-filter: blur(4px); padding: 20px;
+  animation: overlay-in .18s ease both;
+}
+.modal {
+  position: relative; width: 100%; max-width: 420px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
+  padding: 28px; box-shadow: 0 24px 70px rgba(0,0,0,0.5);
+  animation: modal-in .24s cubic-bezier(.2,.9,.3,1.2) both;
+}
+.modal h3 { margin: 0 0 6px; font-size: 1.25rem; letter-spacing: -0.02em; }
+.modal p.muted { margin: 0 0 18px; }
+.modal label { display: block; font-size: .8rem; color: var(--text-3); font-weight: 600; margin-bottom: 8px; }
+.modal-icon { width: 46px; height: 46px; border-radius: 13px; background: rgba(59,130,246,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+.modal-close {
+  position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border-radius: 9px;
+  background: none; border: 1px solid var(--border-soft); color: var(--text-3); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: color .15s, border-color .15s;
+}
+.modal-close:hover { color: var(--text); border-color: var(--primary); }
+@keyframes overlay-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modal-in { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
