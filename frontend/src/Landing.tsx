@@ -11,7 +11,17 @@ import {
 } from "@phosphor-icons/react";
 import { EXPLORER, DEMO_PUBLIC_TX, DEMO_CONFIDENTIAL_TX, PAYROLL_VAULT_ADDRESS } from "./lib/payvault";
 
-export function Landing({ onStart, onVerify }: { onStart: () => void; onVerify: () => void }) {
+export function Landing({
+  onStart,
+  onVerify,
+  onAudit,
+  onMyPay,
+}: {
+  onStart: () => void;
+  onVerify: () => void;
+  onAudit: () => void;
+  onMyPay: () => void;
+}) {
   return (
     <div className="lp">
       {/* Sticky nav */}
@@ -181,6 +191,12 @@ export function Landing({ onStart, onVerify }: { onStart: () => void; onVerify: 
               <h4>Product</h4>
               <a href="#how">How it works</a>
               <button className="lp-footer-link" onClick={onStart}>Open the app</button>
+            </div>
+            <div className="lp-footer-col">
+              <h4>Access</h4>
+              <button className="lp-footer-link" onClick={onStart}>For companies</button>
+              <button className="lp-footer-link" onClick={onAudit}>For auditors</button>
+              <button className="lp-footer-link" onClick={onMyPay}>For employees</button>
             </div>
             <div className="lp-footer-col">
               <h4>Resources</h4>

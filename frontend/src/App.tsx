@@ -47,14 +47,14 @@ import {
 } from "./lib/payvault";
 import { Landing } from "./Landing";
 
-type Section = "overview" | "payroll" | "funding" | "auditors" | "mypay";
+type View = "landing" | "app" | "verify" | "audit" | "mypay";
+type Section = "overview" | "payroll" | "funding" | "auditors";
 
 const TITLES: Record<Section, string> = {
   overview: "Overview",
   payroll: "Payroll",
   funding: "Funding",
   auditors: "Auditors",
-  mypay: "My pay",
 };
 
 function short(a?: string) {
@@ -64,13 +64,15 @@ function short(a?: string) {
 export function App() {
   const { address } = useAccount();
   const [section, setSection] = useState<Section>("overview");
-  const routeFromHash = (): "landing" | "app" | "verify" => {
+  const routeFromHash = (): View => {
     const h = window.location.hash;
-    if (h.includes("app")) return "app";
+    if (h.includes("audit")) return "audit";
+    if (h.includes("mypay")) return "mypay";
     if (h.includes("verify")) return "verify";
+    if (h.includes("app")) return "app";
     return "landing";
   };
-  const [view, setView] = useState<"landing" | "app" | "verify">(routeFromHash);
+  const [view, setView] = useState<View>(routeFromHash);
   const [company, setCompany] = useState<string>("");
   const [editingCompany, setEditingCompany] = useState(false);
 
@@ -80,8 +82,11 @@ export function App() {
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
-  function go(v: "landing" | "app" | "verify") {
-    const hash = v === "app" ? "#/app" : v === "verify" ? "#/verify" : "#/";
+  function go(v: View) {
+    const map: Record<View, string> = {
+      app: "#/app", verify: "#/verify", audit: "#/audit", mypay: "#/mypay", landing: "#/",
+    };
+    const hash = map[v];
     if (window.location.hash !== hash) window.location.hash = hash;
     setView(v);
   }
@@ -99,11 +104,26 @@ export function App() {
   }
 
   if (view === "landing") {
-    return <Landing onStart={() => go("app")} onVerify={() => go("verify")} />;
+    return (
+      <Landing
+        onStart={() => go("app")}
+        onVerify={() => go("verify")}
+        onAudit={() => go("audit")}
+        onMyPay={() => go("mypay")}
+      />
+    );
   }
 
   if (view === "verify") {
     return <VerifyPage onBack={() => go("landing")} />;
+  }
+
+  if (view === "audit") {
+    return <AuditPage onBack={() => go("landing")} />;
+  }
+
+  if (view === "mypay") {
+    return <MyPayPage onBack={() => go("landing")} />;
   }
 
   const NavItem = ({ id, icon }: { id: Section; icon: React.ReactNode }) => (
@@ -152,9 +172,6 @@ export function App() {
           <NavItem id="funding" icon={<Money size={18} weight="bold" />} />
           <NavItem id="payroll" icon={<Buildings size={18} weight="bold" />} />
           <NavItem id="auditors" icon={<MagnifyingGlass size={18} weight="bold" />} />
-
-          <div className="side-group">Employee</div>
-          <NavItem id="mypay" icon={<Wallet size={18} weight="bold" />} />
         </nav>
 
         <button className="side-home" onClick={() => go("landing")}>
@@ -188,7 +205,6 @@ export function App() {
           {section === "payroll" && <PayrollPanel />}
           {section === "funding" && <FundingPanel />}
           {section === "auditors" && <AuditorsPanel />}
-          {section === "mypay" && <EmployeePanel />}
         </main>
       </div>
     </div>
@@ -342,6 +358,101 @@ function VerifyPage({ onBack }: { onBack: () => void }) {
 
       <section className="verify-body">
         <PublicPanel defaultCompany={DEMO_COMPANY as Address} />
+      </section>
+    </div>
+  );
+}
+
+/* ---------------- Auditor page (standalone) ---------------- */
+
+function AuditPage({ onBack }: { onBack: () => void }) {
+  const { address } = useAccount();
+  const { data: walletClient } = useWalletClient();
+  const [company, setCompany] = useState("");
+  const [total, setTotal] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
+
+  async function decryptAggregate() {
+    setResult(null);
+    setTotal("");
+    if (!isAddress(company, { strict: false }))
+      return setResult({ ok: false, msg: "Invalid company address." });
+    if (!walletClient) return;
+    setBusy(true);
+    try {
+      const handle = (await readVault().read.totalPayrollHandle([company as Address])) as `0x${string}`;
+      if (handle === ZERO_HANDLE) {
+        setResult({ ok: false, msg: "No payroll for this company." });
+        return;
+      }
+      const v = await decryptWithRetry(walletClient, handle);
+      setTotal(v.toString());
+    } catch {
+      setResult({ ok: false, msg: "Access denied. This company has not granted you access." });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="lp verify">
+      <header className="lp-nav">
+        <button className="auth-back" onClick={onBack}><ArrowLeft size={16} weight="bold" /> Home</button>
+      </header>
+      <section className="verify-hero">
+        <span className="eyebrow">Auditor · selective disclosure</span>
+        <h1>Verify a company's total payroll.</h1>
+        <p className="lp-sub">
+          Confirm the aggregate a company granted you access to. You never see an individual salary.
+        </p>
+      </section>
+      <section className="verify-body">
+        {!address ? (
+          <div className="card center">
+            <p>Connect the auditor wallet you were granted access with.</p>
+            <ConnectButton />
+          </div>
+        ) : (
+          <div className="card">
+            <label>Company wallet</label>
+            <div className="row">
+              <input placeholder="0x…" value={company} onChange={(e) => setCompany(e.target.value)} />
+              <button className="btn" disabled={busy} onClick={decryptAggregate}>
+                {busy ? <CircleNotch size={17} weight="bold" className="spin" /> : <LockKeyOpen size={17} weight="bold" />} Decrypt total
+              </button>
+            </div>
+            {total && (
+              <div className="public-out">
+                <div className="stat">
+                  <span className="big">{total}</span>
+                  <span>total payroll (aggregate)</span>
+                </div>
+              </div>
+            )}
+            {result && <ResultBanner ok={result.ok}>{result.msg}</ResultBanner>}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+/* ---------------- Employee page (standalone) ---------------- */
+
+function MyPayPage({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="lp verify">
+      <header className="lp-nav">
+        <button className="auth-back" onClick={onBack}><ArrowLeft size={16} weight="bold" /> Home</button>
+      </header>
+      <section className="verify-hero">
+        <span className="eyebrow">Employee</span>
+        <h1>Your confidential pay.</h1>
+        <p className="lp-sub">Only you can decrypt what you received. It stays encrypted for everyone else.</p>
+      </section>
+      <section className="verify-body">
+        <EmployeePanel />
       </section>
     </div>
   );
@@ -670,7 +781,7 @@ function AuditorsPanel() {
   const { address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const [auditor, setAuditor] = useState("");
-  const [status, setStatus] = useState("");
+  const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
   if (!address)
@@ -682,19 +793,18 @@ function AuditorsPanel() {
     );
 
   async function grantAuditor() {
-    setStatus("");
+    setResult(null);
     if (!isAddress(auditor, { strict: false }))
-      return setStatus("❌ Invalid auditor address (need 0x + 40 hex chars)");
+      return setResult({ ok: false, msg: "Invalid auditor address." });
     if (!walletClient) return;
     setBusy(true);
     try {
-      setStatus("Granting auditor access to the aggregate…");
       const tx = await sendVaultTx(walletClient, "grantAuditor", [auditor as Address]);
       await publicClient().waitForTransactionReceipt({ hash: tx });
-      setStatus(`✅ Auditor ${short(auditor)} can now verify the total, not individual salaries.`);
+      setResult({ ok: true, msg: `Auditor ${short(auditor)} can now verify the total.` });
       setAuditor("");
     } catch (e: any) {
-      setStatus("❌ " + (e.shortMessage || e.message || String(e)));
+      setResult({ ok: false, msg: e.shortMessage || e.message || String(e) });
     } finally {
       setBusy(false);
     }
@@ -704,15 +814,15 @@ function AuditorsPanel() {
     <div className="card">
       <h3>Grant an auditor</h3>
       <p className="muted">
-        The auditor will be able to decrypt the <strong>aggregate</strong> payroll only, never
-        individual salaries. This is selective disclosure: privacy and compliance together.
+        The auditor can decrypt the <strong>aggregate</strong> payroll only, never individual
+        salaries. Privacy and compliance together.
       </p>
       <label>Auditor wallet</label>
       <input placeholder="0x…" value={auditor} onChange={(e) => setAuditor(e.target.value)} />
       <button className="btn" disabled={busy} onClick={grantAuditor}>
-        <ShieldCheck size={17} weight="bold" /> Grant aggregate access
+        {busy ? <CircleNotch size={17} weight="bold" className="spin" /> : <ShieldCheck size={17} weight="bold" />} Grant aggregate access
       </button>
-      {status && <div className="status">{status}</div>}
+      {result && <ResultBanner ok={result.ok}>{result.msg}</ResultBanner>}
     </div>
   );
 }
