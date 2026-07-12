@@ -353,21 +353,17 @@ function PayrollPanel() {
   const { data: walletClient } = useWalletClient();
   const [emp, setEmp] = useState("");
   const [salary, setSalary] = useState("");
-  const [status, setStatus] = useState("");
+  const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [employees, setEmployees] = useState<Address[]>([]);
-  const [budget, setBudget] = useState<bigint>(0n);
   const [total, setTotal] = useState<string>("");
   const [reveal, setReveal] = useState<Record<string, string>>({});
 
   async function refresh() {
     if (!address) return;
     try {
-      const c = readVault();
-      const list = (await c.read.employees([address])) as Address[];
-      const b = (await c.read.publicBudget([address])) as bigint;
+      const list = (await readVault().read.employees([address])) as Address[];
       setEmployees([...list]);
-      setBudget(b);
     } catch {
       /* ignore */
     }
@@ -385,32 +381,29 @@ function PayrollPanel() {
     );
 
   async function addEmployee() {
-    setStatus("");
+    setResult(null);
     if (!isAddress(emp, { strict: false }))
-      return setStatus("❌ Invalid employee address (need 0x + 40 hex chars)");
+      return setResult({ ok: false, msg: "Invalid employee address." });
     let amount: bigint;
     try {
       amount = BigInt(salary);
       if (amount <= 0n) throw new Error();
     } catch {
-      return setStatus("❌ Salary must be a positive whole number");
+      return setResult({ ok: false, msg: "Enter a positive salary." });
     }
-    if (!walletClient) return setStatus("❌ Wallet not ready");
+    if (!walletClient) return setResult({ ok: false, msg: "Wallet not ready." });
     setBusy(true);
     try {
-      setStatus("Encrypting salary in the Nox TEE…");
       const hc = await handleClient(walletClient);
       const { handle, handleProof } = await hc.encryptInput(amount, "uint256", PAYROLL_VAULT_ADDRESS);
-      setStatus("Sending addEmployee() transaction…");
       const tx = await sendVaultTx(walletClient, "addEmployee", [emp as Address, handle, handleProof]);
-      setStatus("Waiting for confirmation…");
       await publicClient().waitForTransactionReceipt({ hash: tx });
-      setStatus("✅ Employee added. Salary stays encrypted on-chain.");
+      setResult({ ok: true, msg: "Employee added." });
       setEmp("");
       setSalary("");
       refresh();
     } catch (e: any) {
-      setStatus("❌ " + (e.shortMessage || e.message || String(e)));
+      setResult({ ok: false, msg: e.shortMessage || e.message || String(e) });
     } finally {
       setBusy(false);
     }
@@ -419,19 +412,17 @@ function PayrollPanel() {
   async function decryptTotal() {
     if (!walletClient) return;
     setBusy(true);
-    setStatus("Decrypting your total payroll…");
+    setResult(null);
     try {
       const handle = (await readVault().read.totalPayrollHandle([address!])) as `0x${string}`;
       if (handle === ZERO_HANDLE) {
         setTotal("0");
-        setStatus("No payroll yet.");
         return;
       }
       const v = await decryptWithRetry(walletClient, handle);
       setTotal(v.toString());
-      setStatus("✅ Total decrypted (only you can see this).");
     } catch (e: any) {
-      setStatus("❌ " + (e.message || String(e)));
+      setResult({ ok: false, msg: e.message || String(e) });
     } finally {
       setBusy(false);
     }
@@ -452,13 +443,13 @@ function PayrollPanel() {
   async function runPayroll() {
     if (!walletClient) return;
     setBusy(true);
-    setStatus("Paying all employees confidentially…");
+    setResult(null);
     try {
       const tx = await sendVaultTx(walletClient, "runPayroll", []);
       await publicClient().waitForTransactionReceipt({ hash: tx });
-      setStatus("✅ Payroll run. Each employee received an encrypted cPAY balance. Amounts stay secret.");
+      setResult({ ok: true, msg: "Payroll paid." });
     } catch (e: any) {
-      setStatus("❌ " + (e.shortMessage || e.message || String(e)));
+      setResult({ ok: false, msg: e.shortMessage || e.message || String(e) });
     } finally {
       setBusy(false);
     }
@@ -472,9 +463,22 @@ function PayrollPanel() {
           <label>Employee wallet</label>
           <input placeholder="0x…" value={emp} onChange={(e) => setEmp(e.target.value)} />
           <label>Monthly salary (confidential)</label>
-          <input placeholder="e.g. 5000" value={salary} onChange={(e) => setSalary(e.target.value)} />
-          <button className="btn" disabled={busy} onClick={addEmployee}>
-            <LockKey size={17} weight="bold" /> Encrypt & add
+          <div className="amount-field">
+            <input
+              type="number"
+              inputMode="decimal"
+              placeholder="0"
+              value={salary}
+              onChange={(e) => setSalary(e.target.value)}
+            />
+            <span className="amount-suffix">PayUSD</span>
+          </div>
+          <button className="btn btn-block" disabled={busy} onClick={addEmployee}>
+            {busy ? (
+              <><CircleNotch size={17} weight="bold" className="spin" /> Adding…</>
+            ) : (
+              <><LockKey size={17} weight="bold" /> Encrypt & add</>
+            )}
           </button>
         </div>
 
@@ -517,7 +521,11 @@ function PayrollPanel() {
           )}
         </div>
 
-        {status && <div className="status wide">{status}</div>}
+        {result && (
+          <div style={{ gridColumn: "1 / -1" }}>
+            <ResultBanner ok={result.ok}>{result.msg}</ResultBanner>
+          </div>
+        )}
       </div>
     </>
   );
