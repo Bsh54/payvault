@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { isAddress, formatUnits, parseUnits, type Address } from "viem";
-import { useAccount, useWalletClient } from "wagmi";
+import { useAccount, useWalletClient, useDisconnect } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
   Buildings,
@@ -415,26 +415,122 @@ function AuditPage({ onBack }: { onBack: () => void }) {
   );
 }
 
-/* ---------------- Employee page (standalone) ---------------- */
+/* ---------------- Employee dashboard (standalone) ---------------- */
+
+type EmpTab = "pay" | "privacy";
 
 function MyPayPage({ onBack }: { onBack: () => void }) {
+  const { address } = useAccount();
+  const { disconnect } = useDisconnect();
+  const [tab, setTab] = useState<EmpTab>("pay");
+
+  if (!address)
+    return (
+      <div className="lp verify">
+        <header className="lp-nav">
+          <div className="lp-brand">
+            <span className="lp-logo-mark"><ShieldCheck weight="fill" size={19} /></span>
+            <span>PayVault</span>
+          </div>
+          <button className="lp-btn lp-btn-ghost" onClick={onBack}>
+            <ArrowLeft size={15} weight="bold" /> Home
+          </button>
+        </header>
+        <section className="verify-hero">
+          <h1>Your confidential pay.</h1>
+          <p className="muted">Connect your employee wallet to see the pay only you can read.</p>
+        </section>
+        <section className="verify-body">
+          <div className="card center">
+            <ConnectButton />
+          </div>
+        </section>
+      </div>
+    );
+
+  const titles: Record<EmpTab, string> = { pay: "My pay", privacy: "Privacy" };
+
   return (
-    <div className="lp verify">
-      <header className="lp-nav">
-        <div className="lp-brand">
-          <span className="lp-logo-mark"><ShieldCheck weight="fill" size={19} /></span>
-          <span>PayVault</span>
+    <div className="dash">
+      <aside className="sidebar">
+        <div className="side-brand">
+          <span className="side-logo-mark"><ShieldCheck weight="fill" size={18} /></span>
+          <span className="side-logo">PayVault</span>
         </div>
-        <button className="lp-btn lp-btn-ghost" onClick={onBack}>
-          <ArrowLeft size={15} weight="bold" /> Home
+
+        <div className="side-company-box">
+          <div className="side-company-label" style={{ cursor: "default" }}>
+            <span className="mono">{short(address)}</span>
+            <Wallet size={13} />
+          </div>
+        </div>
+
+        <nav className="side-nav">
+          <div className="side-group">Employee</div>
+          <button className={`side-item ${tab === "pay" ? "on" : ""}`} onClick={() => setTab("pay")}>
+            <Money size={18} weight="bold" /> <span>My pay</span>
+          </button>
+          <button className={`side-item ${tab === "privacy" ? "on" : ""}`} onClick={() => setTab("privacy")}>
+            <LockKey size={18} weight="bold" /> <span>Privacy</span>
+          </button>
+        </nav>
+
+        <button className="side-home" onClick={() => disconnect()}>
+          <ArrowLeft size={17} weight="bold" /> Disconnect
         </button>
-      </header>
-      <section className="verify-hero">
-        <h1>Your confidential pay.</h1>
-      </section>
-      <section className="verify-body">
-        <EmployeePanel />
-      </section>
+        <button className="side-home" onClick={onBack}>
+          <House size={17} weight="bold" /> Home
+        </button>
+      </aside>
+
+      <div className="content">
+        <header className="content-top">
+          <h1>{titles[tab]}</h1>
+          <div className="content-top-right">
+            <a
+              className="verify-link"
+              href={`${EXPLORER}/address/${address}`}
+              target="_blank"
+              rel="noreferrer"
+              title="View this wallet's authentic on-chain record on Etherscan"
+            >
+              <ArrowSquareOut size={15} weight="bold" /> Verify on-chain
+            </a>
+            <ConnectButton accountStatus="address" chainStatus="icon" showBalance={false} />
+          </div>
+        </header>
+
+        <main className="content-main">
+          {tab === "pay" && <EmployeePanel />}
+          {tab === "privacy" && <EmployeePrivacyPanel />}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function EmployeePrivacyPanel() {
+  return (
+    <div className="card">
+      <h3>How your pay stays private</h3>
+      <ul className="privacy-list">
+        <li>
+          <LockKey size={18} weight="bold" />
+          <span>Your pay is a confidential cPAY balance (ERC-7984), encrypted on-chain.</span>
+        </li>
+        <li>
+          <EyeSlash size={18} weight="bold" />
+          <span>No one reads your amount on the public chain, not colleagues, not auditors.</span>
+        </li>
+        <li>
+          <LockKeyOpen size={18} weight="bold" />
+          <span>Only your wallet can decrypt it, through the Nox handle gateway.</span>
+        </li>
+        <li>
+          <ShieldCheck size={18} weight="bold" />
+          <span>Auditors verify the company total, never a single salary.</span>
+        </li>
+      </ul>
     </div>
   );
 }
@@ -842,7 +938,7 @@ function EmployeePanel() {
       }
       const v = await decryptWithRetry(walletClient, handle);
       setPay(v.toString());
-      setStatus("✅ Only you can read this. It is encrypted for everyone else.");
+      setStatus("Only you can read this. It is encrypted for everyone else.");
     } catch {
       setStatus("Nothing to decrypt yet, or access not granted.");
     } finally {
