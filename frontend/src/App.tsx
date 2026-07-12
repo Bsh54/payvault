@@ -61,11 +61,11 @@ function short(a?: string) {
   return a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "";
 }
 
-function parseHash(): string[] {
-  return window.location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
+function parsePath(): string[] {
+  return window.location.pathname.replace(/^\/+/, "").split("/").filter(Boolean);
 }
-function viewFromHash(): View {
-  const [root] = parseHash();
+function viewFromPath(): View {
+  const [root] = parsePath();
   if (root === "app") return "app";
   if (root === "verify") return "verify";
   if (root === "audit") return "audit";
@@ -73,41 +73,44 @@ function viewFromHash(): View {
   return "landing";
 }
 const SECTIONS: Section[] = ["overview", "funding", "payroll", "auditors"];
-function sectionFromHash(): Section {
-  const [root, sub] = parseHash();
+function sectionFromPath(): Section {
+  const [root, sub] = parsePath();
   if (root === "app" && SECTIONS.includes(sub as Section)) return sub as Section;
   return "overview";
 }
 
 export function App() {
   const { address } = useAccount();
-  const [section, setSection] = useState<Section>(sectionFromHash);
-  const [view, setView] = useState<View>(viewFromHash);
+  const [section, setSection] = useState<Section>(sectionFromPath);
+  const [view, setView] = useState<View>(viewFromPath);
   const [company, setCompany] = useState<string>("");
   const [editingCompany, setEditingCompany] = useState(false);
 
   useEffect(() => {
-    const onHash = () => {
-      setView(viewFromHash());
-      setSection(sectionFromHash());
+    const onPop = () => {
+      setView(viewFromPath());
+      setSection(sectionFromPath());
     };
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
   }, []);
+
+  function navigate(path: string) {
+    if (window.location.pathname !== path) window.history.pushState(null, "", path);
+    window.scrollTo(0, 0);
+  }
 
   function go(v: View) {
     const map: Record<View, string> = {
-      app: "#/app/overview", verify: "#/verify", audit: "#/audit", mypay: "#/mypay", landing: "#/",
+      app: "/app/overview", verify: "/verify", audit: "/audit", mypay: "/mypay", landing: "/",
     };
-    const hash = map[v];
-    if (window.location.hash !== hash) window.location.hash = hash;
+    navigate(map[v]);
     setView(v);
     if (v === "app") setSection("overview");
   }
 
   function goSection(s: Section) {
-    const hash = `#/app/${s}`;
-    if (window.location.hash !== hash) window.location.hash = hash;
+    navigate(`/app/${s}`);
     setSection(s);
     setView("app");
   }
