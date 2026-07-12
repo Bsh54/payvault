@@ -612,10 +612,6 @@ function FundingPanel() {
             <span className="big">{formatUnits(budget, 18)}</span>
             <span>PayUSD budget (public)</span>
           </div>
-          <div className="stat">
-            <span className="big">Hidden</span>
-            <span>per-employee split</span>
-          </div>
         </div>
       )}
 
