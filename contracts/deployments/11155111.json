@@ -1,8 +1,8 @@
 {
   "chainId": 11155111,
-  "PayrollVault": "0x5c37c25e88edfce2b0b19e11f74c9422a42dd5cc",
-  "PayUSD": "0xf187422619859a5be5a2db1a275da7a1532d930a",
+  "PayrollVault": "0xa775bf4d13d70984959a06ef4f61e0e68d56e0f5",
+  "PayUSD": "0x35e3be25997a21a34ff79a2562e13a9d1d06937f",
   "SablierLockup": "0xe61cb9153356419bdaD0A8767c059f92d221a3C4",
   "deployer": "0x8bee24f6d3f421601bc044667ccd3adc0cb39288",
-  "deployedAt": "2026-07-12T05:14:05.864Z"
+  "deployedAt": "2026-07-12T20:12:01.761Z"
 }

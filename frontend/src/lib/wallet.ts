@@ -45,6 +45,7 @@ export async function sendVaultTx(
   walletClient: WalletClient,
   functionName: string,
   args: readonly unknown[],
+  value?: bigint,
 ): Promise<`0x${string}`> {
   const data = encodeFunctionData({
     abi: PAYROLL_VAULT_ABI,
@@ -56,6 +57,7 @@ export async function sendVaultTx(
     chain: CHAIN,
     to: PAYROLL_VAULT_ADDRESS,
     data,
+    ...(value ? { value } : {}),
   });
   return hash;
 }

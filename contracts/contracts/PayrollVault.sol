@@ -5,7 +5,13 @@ import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import {Nox, euint256, externalEuint256} from "@iexec-nox/nox-protocol-contracts/contracts/sdk/Nox.sol";
 import {ERC20ToERC7984Wrapper} from "@iexec-nox/nox-confidential-contracts/contracts/token/extensions/ERC20ToERC7984Wrapper.sol";
 
-/// @title PayrollVault v2 (multi-tenant, backed by a public ERC-20)
+/// @dev Minimal Sablier Lockup interface: the recipient (this vault) withdraws vested funds.
+///      Sablier charges a small native (ETH) withdrawal fee, forwarded as msg.value.
+interface ISablierLockup {
+    function withdrawMax(uint256 streamId, address to) external payable returns (uint128);
+}
+
+/// @title PayrollVault v3 (multi-tenant, funded through a real Sablier stream)
 /// @notice Confidential payroll registry on Nox. Every wallet owns its OWN payroll
 ///         book keyed by `msg.sender` (the company). Individual salaries are stored as
 ///         encrypted handles (euint256), decryptable only by the company and the employee.
@@ -17,6 +23,9 @@ import {ERC20ToERC7984Wrapper} from "@iexec-nox/nox-confidential-contracts/contr
 ///         public PayUSD via a public-decryption proof — closing the money loop while
 ///         keeping the amount hidden until the employee themselves cashes out.
 contract PayrollVault is ERC20ToERC7984Wrapper {
+    // Sablier Lockup on ETH Sepolia (public funding protocol, unmodified).
+    address public constant SABLIER = 0xe61cb9153356419bdaD0A8767c059f92d221a3C4;
+
     constructor(IERC20 payUSD)
         ERC20ToERC7984Wrapper("PayVault Confidential Pay", "cPAY", "", payUSD)
     {}
@@ -189,6 +198,16 @@ contract PayrollVault is ERC20ToERC7984Wrapper {
         sablierStreamId[msg.sender] = streamId;
         publicBudget[msg.sender] = publicAmount;
         emit FundingLinked(msg.sender, streamId, publicAmount);
+    }
+
+    /// @notice Pull the vested PayUSD from the company's public Sablier stream into the
+    ///         vault. This is what actually backs the confidential cPAY payouts: money
+    ///         flows company -> Sablier (public) -> vault -> confidential distribution.
+    /// @dev    The vault is the stream recipient, so it can withdraw the vested amount.
+    function pullFunding() external payable {
+        uint256 streamId = sablierStreamId[msg.sender];
+        require(streamId != 0, "PayrollVault: no stream");
+        ISablierLockup(SABLIER).withdrawMax{value: msg.value}(streamId, address(this));
     }
 
     // --- Encrypted handle getters (values only decryptable by ACL'd addresses) ---

@@ -12,9 +12,11 @@ export const RPC_URL =
 export const LOGS_RPC_URL =
   import.meta.env.VITE_LOGS_RPC_URL || "https://sepolia.gateway.tenderly.co";
 export const PAYROLL_VAULT_ADDRESS =
-  "0x5c37c25e88edfce2b0b19e11f74c9422a42dd5cc" as const;
+  "0xa775bf4d13d70984959a06ef4f61e0e68d56e0f5" as const;
 export const PAYUSD_ADDRESS =
-  "0xf187422619859a5be5a2db1a275da7a1532d930a" as const;
+  "0x35e3be25997a21a34ff79a2562e13a9d1d06937f" as const;
+// Sablier withdrawal fee (native ETH) forwarded by pullFunding.
+export const SABLIER_FEE_WEI = 500000000000000n; // 0.0005 ETH
 export const SABLIER_ADDRESS =
   "0xe61cb9153356419bdaD0A8767c059f92d221a3C4" as const;
 
@@ -228,6 +230,13 @@ export const PAYROLL_VAULT_ABI = [
       { name: "streamId", type: "uint256" },
       { name: "publicAmount", type: "uint256" },
     ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "pullFunding",
+    stateMutability: "payable",
+    inputs: [],
     outputs: [],
   },
 ] as const;

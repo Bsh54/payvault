@@ -42,6 +42,7 @@ import {
   PAYROLL_VAULT_ADDRESS,
   PAYUSD_ADDRESS,
   SABLIER_ADDRESS,
+  SABLIER_FEE_WEI,
   PAYUSD_ABI,
   SABLIER_ABI,
   EXPLORER,
@@ -275,7 +276,7 @@ function OverviewPanel({ onGo }: { onGo: (s: Section) => void }) {
     try {
       const handle = (await readVault().read.totalPayrollHandle([address!])) as `0x${string}`;
       if (handle === ZERO_HANDLE) return setTotal("0");
-      setTotal((await decryptWithRetry(walletClient, handle)).toString());
+      setTotal(formatUnits(await decryptWithRetry(walletClient, handle), 18));
     } catch {
       /* ignore */
     } finally {
@@ -365,7 +366,7 @@ function AuditPage({ onBack }: { onBack: () => void }) {
         return;
       }
       const v = await decryptWithRetry(walletClient, handle);
-      setTotal(v.toString());
+      setTotal(formatUnits(v, 18));
     } catch {
       setResult({ ok: false, msg: "Access denied. This company has not granted you access." });
     } finally {
@@ -518,6 +519,7 @@ function PayrollPanel() {
   const [editing, setEditing] = useState<Address | "">("");
   const [editSalary, setEditSalary] = useState("");
   const [paying, setPaying] = useState<Record<string, "pending" | "done">>({});
+  const [confirmRemove, setConfirmRemove] = useState<Address | "">("");
 
   async function refresh() {
     if (!address) return;
@@ -546,7 +548,7 @@ function PayrollPanel() {
       return setResult({ ok: false, msg: "Invalid employee address." });
     let amount: bigint;
     try {
-      amount = BigInt(salary);
+      amount = parseUnits(salary, 18);
       if (amount <= 0n) throw new Error();
     } catch {
       return setResult({ ok: false, msg: "Enter a positive salary." });
@@ -576,7 +578,7 @@ function PayrollPanel() {
     try {
       const handle = (await readVault().read.salaryHandleOf([address!, e])) as `0x${string}`;
       const v = await decryptWithRetry(walletClient, handle);
-      setReveal((r) => ({ ...r, [e]: v.toString() }));
+      setReveal((r) => ({ ...r, [e]: formatUnits(v, 18) }));
     } catch {
       setReveal((r) => ({ ...r, [e]: "denied" }));
     }
@@ -590,6 +592,7 @@ function PayrollPanel() {
       const tx = await sendVaultTx(walletClient, "removeEmployee", [e]);
       await publicClient().waitForTransactionReceipt({ hash: tx });
       setResult({ ok: true, msg: `Removed ${short(e)} from payroll.` });
+      setConfirmRemove("");
       refresh();
     } catch (err: any) {
       setResult({ ok: false, msg: err.shortMessage || err.message || String(err) });
@@ -602,7 +605,7 @@ function PayrollPanel() {
     setResult(null);
     let amount: bigint;
     try {
-      amount = BigInt(editSalary);
+      amount = parseUnits(editSalary, 18);
       if (amount <= 0n) throw new Error();
     } catch {
       return setResult({ ok: false, msg: "Enter a positive salary." });
@@ -700,7 +703,11 @@ function PayrollPanel() {
                 <td className="row-actions">
                   <button className="link" onClick={() => revealSalary(e)}><Eye size={13} weight="bold" /> reveal</button>
                   <button className="link" onClick={() => { setEditing(e); setEditSalary(""); setResult(null); }}><PencilSimple size={13} weight="bold" /> edit</button>
-                  <button className="link danger" disabled={busy} onClick={() => removeEmployee(e)}><XCircle size={13} weight="bold" /> remove</button>
+                  {confirmRemove === e ? (
+                    <button className="link danger" disabled={busy} onClick={() => removeEmployee(e)}><XCircle size={13} weight="bold" /> confirm?</button>
+                  ) : (
+                    <button className="link danger" onClick={() => setConfirmRemove(e)}><XCircle size={13} weight="bold" /> remove</button>
+                  )}
                   <a className="link" href={`${EXPLORER}/address/${e}`} target="_blank" rel="noreferrer">
                     <ArrowSquareOut size={13} weight="bold" /> verify
                   </a>
@@ -766,7 +773,7 @@ function FundingPanel() {
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState(0);
 
-  const FUND_STEPS = ["Mint PayUSD", "Approve Sablier", "Create stream", "Record funding"];
+  const FUND_STEPS = ["Mint PayUSD", "Approve Sablier", "Create stream", "Record funding", "Pull from stream"];
 
   async function refresh() {
     if (!address) return;
@@ -823,13 +830,17 @@ function FundingPanel() {
         token: PAYUSD_ADDRESS, cancelable: true, transferable: true, shape: "PayVault confidential payroll",
       };
       await wait(sendTo(walletClient, SABLIER_ADDRESS, SABLIER_ABI, "createWithDurationsLL", [
-        params, { start: 0n, cliff: 0n }, 0, { cliff: 0, total: 30 * 24 * 60 * 60 },
+        params, { start: 0n, cliff: 0n }, 0, { cliff: 0, total: 1 },
       ]));
 
       setStep(4);
       await wait(sendVaultTx(walletClient, "linkFunding", [nextId, value]));
 
       setStep(5);
+      // Vault pulls the vested PayUSD from the public stream (forwards Sablier's ETH fee).
+      await wait(sendVaultTx(walletClient, "pullFunding", [], SABLIER_FEE_WEI));
+
+      setStep(6);
       setResult({ ok: true, msg: "Payroll funded." });
       refresh();
     } catch (e: any) {
@@ -1075,7 +1086,7 @@ function EmployeePanel() {
         return;
       }
       const v = await decryptWithRetry(walletClient, handle);
-      setPay(v.toString());
+      setPay(formatUnits(v, 18));
       setStatus("");
     } catch {
       setStatus("Nothing to decrypt yet.");
@@ -1090,7 +1101,7 @@ function EmployeePanel() {
     setResult(null);
     try {
       const amount = await withdrawAll(walletClient, setStatus);
-      setResult({ ok: true, msg: `Withdrew ${amount.toString()} PayUSD.` });
+      setResult({ ok: true, msg: `Withdrew ${formatUnits(amount, 18)} PayUSD.` });
       setStatus("");
       setPay("");
     } catch (e: any) {
