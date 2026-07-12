@@ -23,6 +23,7 @@ import {
   CircleNotch,
   CheckCircle,
   XCircle,
+  Plus,
 } from "@phosphor-icons/react";
 import {
   readVault,
@@ -356,8 +357,8 @@ function PayrollPanel() {
   const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [employees, setEmployees] = useState<Address[]>([]);
-  const [total, setTotal] = useState<string>("");
   const [reveal, setReveal] = useState<Record<string, string>>({});
+  const [showAdd, setShowAdd] = useState(false);
 
   async function refresh() {
     if (!address) return;
@@ -401,28 +402,10 @@ function PayrollPanel() {
       setResult({ ok: true, msg: "Employee added." });
       setEmp("");
       setSalary("");
+      setShowAdd(false);
       refresh();
     } catch (e: any) {
       setResult({ ok: false, msg: e.shortMessage || e.message || String(e) });
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function decryptTotal() {
-    if (!walletClient) return;
-    setBusy(true);
-    setResult(null);
-    try {
-      const handle = (await readVault().read.totalPayrollHandle([address!])) as `0x${string}`;
-      if (handle === ZERO_HANDLE) {
-        setTotal("0");
-        return;
-      }
-      const v = await decryptWithRetry(walletClient, handle);
-      setTotal(v.toString());
-    } catch (e: any) {
-      setResult({ ok: false, msg: e.message || String(e) });
     } finally {
       setBusy(false);
     }
@@ -456,78 +439,62 @@ function PayrollPanel() {
   }
 
   return (
-    <>
-      <div className="grid">
-        <div className="card">
-          <h3>Add an employee</h3>
+    <div className="card">
+      <div className="panel-head">
+        <h3>Employees ({employees.length})</h3>
+        <div className="row">
+          <button className="btn ghost sm" onClick={() => { setShowAdd((v) => !v); setResult(null); }}>
+            <Plus size={16} weight="bold" /> Add employee
+          </button>
+          <button className="btn sm" disabled={busy || employees.length === 0} onClick={runPayroll}>
+            {busy ? <CircleNotch size={16} weight="bold" className="spin" /> : <CurrencyDollar size={16} weight="bold" />} Run payroll
+          </button>
+        </div>
+      </div>
+
+      {showAdd && (
+        <div className="add-form">
           <label>Employee wallet</label>
           <input placeholder="0x…" value={emp} onChange={(e) => setEmp(e.target.value)} />
           <label>Monthly salary (confidential)</label>
           <div className="amount-field">
-            <input
-              type="number"
-              inputMode="decimal"
-              placeholder="0"
-              value={salary}
-              onChange={(e) => setSalary(e.target.value)}
-            />
+            <input type="number" inputMode="decimal" placeholder="0" value={salary} onChange={(e) => setSalary(e.target.value)} />
             <span className="amount-suffix">PayUSD</span>
           </div>
-          <button className="btn btn-block" disabled={busy} onClick={addEmployee}>
-            {busy ? (
-              <><CircleNotch size={17} weight="bold" className="spin" /> Adding…</>
-            ) : (
-              <><LockKey size={17} weight="bold" /> Encrypt & add</>
-            )}
-          </button>
-        </div>
-
-        <div className="card">
-          <h3>Payroll actions</h3>
-          <p className="muted">Decrypt your own aggregate, or pay every employee a confidential balance.</p>
-          <div className="stack">
-            <button className="btn ghost" disabled={busy} onClick={decryptTotal}>
-              <LockKeyOpen size={17} weight="bold" /> Decrypt total{total !== "" ? `: ${total}` : ""}
+          <div className="row" style={{ marginTop: 14 }}>
+            <button className="btn" disabled={busy} onClick={addEmployee}>
+              {busy ? <><CircleNotch size={17} weight="bold" className="spin" /> Adding…</> : <><LockKey size={17} weight="bold" /> Encrypt & add</>}
             </button>
-            <button className="btn" disabled={busy || employees.length === 0} onClick={runPayroll}>
-              <CurrencyDollar size={17} weight="bold" /> Run payroll
-            </button>
+            <button className="btn ghost" onClick={() => { setShowAdd(false); setResult(null); }}>Cancel</button>
           </div>
         </div>
+      )}
 
-        <div className="card wide">
-          <h3>Employees ({employees.length})</h3>
-          {employees.length === 0 ? (
-            <p className="muted">No employees yet. Add your first one above.</p>
-          ) : (
-            <table>
-              <thead>
-                <tr><th>Employee</th><th>Salary</th><th></th></tr>
-              </thead>
-              <tbody>
-                {employees.map((e) => (
-                  <tr key={e}>
-                    <td className="mono">{short(e)}</td>
-                    <td className="mono">
-                      {reveal[e] ? (reveal[e] === "denied" ? "Denied" : reveal[e]) : "Encrypted"}
-                    </td>
-                    <td>
-                      <button className="link" onClick={() => revealSalary(e)}>reveal</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+      {employees.length === 0 ? (
+        <p className="muted empty">No employees yet. Click “Add employee” to register your first one.</p>
+      ) : (
+        <table>
+          <thead>
+            <tr><th>Employee</th><th>Salary</th><th></th></tr>
+          </thead>
+          <tbody>
+            {employees.map((e) => (
+              <tr key={e}>
+                <td className="mono">{short(e)}</td>
+                <td className="mono">
+                  {reveal[e] ? (reveal[e] === "denied" ? "Denied" : reveal[e]) : "Encrypted"}
+                </td>
+                <td>
+                  <button className="link" onClick={() => revealSalary(e)}>reveal</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
 
-        {result && (
-          <div style={{ gridColumn: "1 / -1" }}>
-            <ResultBanner ok={result.ok}>{result.msg}</ResultBanner>
-          </div>
-        )}
-      </div>
-    </>
+      {result && <ResultBanner ok={result.ok}>{result.msg}</ResultBanner>}
+    </div>
   );
 }
 

@@ -171,6 +171,16 @@ input:focus { outline: none; border-color: var(--primary); }
 .btn.ghost:hover { border-color: var(--primary); }
 .link { background: none; border: none; color: var(--green-2); cursor: pointer; font-size: .85rem; font-family: inherit; font-weight: 600; }
 
+/* Panel header with toolbar */
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.panel-head h3 { margin: 0; }
+.btn.sm { margin-top: 0; padding: .5em .9em; font-size: .88rem; border-radius: 10px; }
+
+/* Inline add form (progressive disclosure) */
+.add-form { background: var(--bg-subtle, #0f1830); border: 1px solid var(--border-soft); border-radius: 14px; padding: 18px; margin-bottom: 18px; }
+.add-form label:first-child { margin-top: 0; }
+.empty { padding: 22px 0; text-align: center; }
+
 .row { display: flex; gap: 10px; align-items: center; }
 .row.between { justify-content: space-between; }
 .row input { flex: 1; }
