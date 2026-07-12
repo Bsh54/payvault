@@ -373,14 +373,16 @@ function AuditPage({ onBack }: { onBack: () => void }) {
   return (
     <div className="lp verify">
       <header className="lp-nav">
-        <button className="auth-back" onClick={onBack}><ArrowLeft size={16} weight="bold" /> Home</button>
+        <div className="lp-brand">
+          <span className="lp-logo-mark"><ShieldCheck weight="fill" size={19} /></span>
+          <span>PayVault</span>
+        </div>
+        <button className="lp-btn lp-btn-ghost" onClick={onBack}>
+          <ArrowLeft size={15} weight="bold" /> Home
+        </button>
       </header>
       <section className="verify-hero">
-        <span className="eyebrow">Auditor · selective disclosure</span>
         <h1>Verify a company's total payroll.</h1>
-        <p className="lp-sub">
-          Confirm the aggregate a company granted you access to. You never see an individual salary.
-        </p>
       </section>
       <section className="verify-body">
         {!address ? (
@@ -419,12 +421,16 @@ function MyPayPage({ onBack }: { onBack: () => void }) {
   return (
     <div className="lp verify">
       <header className="lp-nav">
-        <button className="auth-back" onClick={onBack}><ArrowLeft size={16} weight="bold" /> Home</button>
+        <div className="lp-brand">
+          <span className="lp-logo-mark"><ShieldCheck weight="fill" size={19} /></span>
+          <span>PayVault</span>
+        </div>
+        <button className="lp-btn lp-btn-ghost" onClick={onBack}>
+          <ArrowLeft size={15} weight="bold" /> Home
+        </button>
       </header>
       <section className="verify-hero">
-        <span className="eyebrow">Employee</span>
         <h1>Your confidential pay.</h1>
-        <p className="lp-sub">Only you can decrypt what you received. It stays encrypted for everyone else.</p>
       </section>
       <section className="verify-body">
         <EmployeePanel />
