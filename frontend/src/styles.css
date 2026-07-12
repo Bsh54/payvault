@@ -251,3 +251,14 @@ footer { margin-top: 40px; text-align: center; color: var(--text-3); font-size: 
 .paid-tick { color: var(--green-2); vertical-align: middle; margin-right: 6px; }
 td .spin { vertical-align: middle; margin-right: 6px; color: var(--text-3); }
 .amount-field.inline { max-width: 220px; }
+
+/* Employee: paid-by chips + payment history */
+.employers { margin-top: 20px; }
+.employers-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: var(--text-3); font-weight: 700; margin-bottom: 10px; }
+.employer-chip { display: inline-flex; align-items: center; gap: 7px; background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 999px; padding: 6px 12px; margin: 0 8px 8px 0; color: var(--text-2); font-size: .84rem; text-decoration: none; }
+.employer-chip:hover { border-color: var(--primary); color: var(--text); text-decoration: none; }
+.employer-chip svg:last-child { color: var(--text-3); }
+.pay-history { margin-top: 22px; }
+.link.danger { color: #f87171; }
+.link.danger:hover { color: #ef4444; }
+.link:disabled { opacity: .5; cursor: wait; }

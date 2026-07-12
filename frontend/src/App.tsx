@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { isAddress, formatUnits, parseUnits, type Address } from "viem";
+import { isAddress, formatUnits, parseUnits, parseAbiItem, type Address } from "viem";
 import { useAccount, useWalletClient, useDisconnect } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
@@ -32,6 +32,7 @@ import {
   publicClient,
   sendVaultTx,
   sendTo,
+  withdrawAll,
   ZERO_HANDLE,
 } from "./lib/wallet";
 import {
@@ -580,6 +581,22 @@ function PayrollPanel() {
     }
   }
 
+  async function removeEmployee(e: Address) {
+    if (!walletClient) return;
+    setResult(null);
+    setBusy(true);
+    try {
+      const tx = await sendVaultTx(walletClient, "removeEmployee", [e]);
+      await publicClient().waitForTransactionReceipt({ hash: tx });
+      setResult({ ok: true, msg: `Removed ${short(e)} from payroll.` });
+      refresh();
+    } catch (err: any) {
+      setResult({ ok: false, msg: err.shortMessage || err.message || String(err) });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function saveSalary(e: Address) {
     setResult(null);
     let amount: bigint;
@@ -697,6 +714,7 @@ function PayrollPanel() {
                     <td className="row-actions">
                       <button className="link" onClick={() => revealSalary(e)}>reveal</button>
                       <button className="link" onClick={() => { setEditing(e); setEditSalary(""); setResult(null); }}>edit</button>
+                      <button className="link danger" disabled={busy} onClick={() => removeEmployee(e)}>remove</button>
                       <a className="link" href={`${EXPLORER}/address/${e}`} target="_blank" rel="noreferrer">
                         verify <ArrowSquareOut size={12} weight="bold" />
                       </a>
@@ -965,6 +983,39 @@ function EmployeePanel() {
   const [pay, setPay] = useState("");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [employers, setEmployers] = useState<Address[]>([]);
+  const [history, setHistory] = useState<{ company: Address; block: bigint; tx: string }[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      if (!address) return;
+      let list: Address[] = [];
+      try {
+        list = [...((await readVault().read.employersOf([address])) as Address[])];
+        setEmployers(list);
+      } catch {
+        return;
+      }
+      // Payment history: PayrollRun events emitted by the employers of this wallet.
+      try {
+        const pc = publicClient();
+        const latest = await pc.getBlockNumber();
+        const fromBlock = latest > 50000n ? latest - 50000n : 0n;
+        const ev = parseAbiItem("event PayrollRun(address indexed company, uint256 employeeCount)");
+        const rows: { company: Address; block: bigint; tx: string }[] = [];
+        for (const company of list) {
+          const logs = await pc.getLogs({ address: PAYROLL_VAULT_ADDRESS, event: ev, args: { company }, fromBlock });
+          for (const l of logs) rows.push({ company, block: l.blockNumber!, tx: l.transactionHash! });
+        }
+        rows.sort((a, b) => Number(b.block - a.block));
+        setHistory(rows);
+      } catch {
+        /* history is best-effort */
+      }
+    })();
+  }, [address]);
 
   if (!address)
     return (
@@ -994,6 +1045,22 @@ function EmployeePanel() {
     }
   }
 
+  async function withdraw() {
+    if (!walletClient) return;
+    setWithdrawing(true);
+    setResult(null);
+    try {
+      const amount = await withdrawAll(walletClient, setStatus);
+      setResult({ ok: true, msg: `Withdrew ${amount.toString()} to real PayUSD in your wallet.` });
+      setStatus("");
+      setPay("");
+    } catch (e: any) {
+      setResult({ ok: false, msg: e.shortMessage || e.message || String(e) });
+    } finally {
+      setWithdrawing(false);
+    }
+  }
+
   return (
     <div className="card">
       <h3>My confidential pay</h3>
@@ -1001,9 +1068,14 @@ function EmployeePanel() {
         Connected as <span className="mono">{short(address)}</span>. Your received pay is held as a
         confidential <strong>cPAY</strong> balance (ERC-7984), encrypted on-chain. Only you can decrypt it.
       </p>
-      <button className="btn" disabled={busy} onClick={decryptPay}>
-        <LockKeyOpen size={17} weight="bold" /> Decrypt my pay
-      </button>
+      <div className="row">
+        <button className="btn" disabled={busy || withdrawing} onClick={decryptPay}>
+          {busy ? <CircleNotch size={17} weight="bold" className="spin" /> : <LockKeyOpen size={17} weight="bold" />} Decrypt my pay
+        </button>
+        <button className="btn ghost" disabled={busy || withdrawing} onClick={withdraw}>
+          {withdrawing ? <CircleNotch size={17} weight="bold" className="spin" /> : <Money size={17} weight="bold" />} Withdraw to PayUSD
+        </button>
+      </div>
       {pay && (
         <div className="public-out">
           <div className="stat">
@@ -1013,6 +1085,44 @@ function EmployeePanel() {
         </div>
       )}
       {status && <div className="status">{status}</div>}
+      {result && <ResultBanner ok={result.ok}>{result.msg}</ResultBanner>}
+
+      {employers.length > 0 && (
+        <div className="employers">
+          <div className="employers-label">Paid by</div>
+          {employers.map((e) => (
+            <a key={e} className="employer-chip" href={`${EXPLORER}/address/${e}`} target="_blank" rel="noreferrer">
+              <Buildings size={14} weight="bold" /> <span className="mono">{short(e)}</span>
+              <ArrowSquareOut size={11} weight="bold" />
+            </a>
+          ))}
+        </div>
+      )}
+
+      {history.length > 0 && (
+        <div className="pay-history">
+          <div className="employers-label">Payment history</div>
+          <table>
+            <thead>
+              <tr><th>Company</th><th>Block</th><th></th></tr>
+            </thead>
+            <tbody>
+              {history.map((h) => (
+                <tr key={h.tx}>
+                  <td className="mono">{short(h.company)}</td>
+                  <td className="mono">#{h.block.toString()}</td>
+                  <td className="row-actions">
+                    <a className="link" href={`${EXPLORER}/tx/${h.tx}`} target="_blank" rel="noreferrer">
+                      view <ArrowSquareOut size={12} weight="bold" />
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="muted" style={{ fontSize: ".78rem", marginTop: 6 }}>Dates are public. Amounts stay encrypted.</p>
+        </div>
+      )}
     </div>
   );
 }
