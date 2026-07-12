@@ -44,8 +44,8 @@ Off-chain TEE (Nox Runner) computes on encrypted data
 
 | Contract | Address |
 |---|---|
-| **PayrollVault** (also the cPAY ERC-7984 token) | [`0x48e48f43ee633da6ae5a5a433f4f1c3f69ea5d8f`](https://sepolia.etherscan.io/address/0x48e48f43ee633da6ae5a5a433f4f1c3f69ea5d8f) |
-| **PayUSD** (test payroll token) | [`0xda4db7f6f01c01969043521adca9dbe75d7be3ee`](https://sepolia.etherscan.io/address/0xda4db7f6f01c01969043521adca9dbe75d7be3ee) |
+| **PayrollVault** (also the cPAY ERC-7984 token) | [`0x5c37c25e88edfce2b0b19e11f74c9422a42dd5cc`](https://sepolia.etherscan.io/address/0x5c37c25e88edfce2b0b19e11f74c9422a42dd5cc) |
+| **PayUSD** (test payroll token) | [`0xf187422619859a5be5a2db1a275da7a1532d930a`](https://sepolia.etherscan.io/address/0xf187422619859a5be5a2db1a275da7a1532d930a) |
 | **Sablier Lockup** (external, unmodified) | [`0xe61cb9153356419bdaD0A8767c059f92d221a3C4`](https://sepolia.etherscan.io/address/0xe61cb9153356419bdaD0A8767c059f92d221a3C4) |
 
 ## Repository layout
@@ -102,7 +102,7 @@ Optional env: `VITE_RPC_URL` (pinned Sepolia RPC) and `VITE_WC_PROJECT_ID` (Wall
 The dashboard connects MetaMask, switches to Sepolia, and lets you:
 - **Company:** add employees with encrypted salaries, decrypt your own total, run payroll, grant an auditor.
 - **Auditor:** decrypt the aggregate you were granted — never an individual salary.
-- **Employee:** decrypt your own confidential pay — encrypted for everyone else.
+- **Employee:** decrypt your own confidential pay, then withdraw it to real PayUSD when you choose (unwrap via public-decryption proof).
 
 ## Try the live demo
 
