@@ -60,7 +60,7 @@ export function Landing({
 
         {/* Representative product visual */}
         <div className="lp-hero-visual fade-up d2">
-          <img className="lp-hero-img" src="/hero-dashboard.jpg?v=1" alt="Confidential payroll dashboard" />
+          <img className="lp-hero-img" src="/hero-team.jpg?v=1" alt="A team getting paid confidentially" />
           <span className="lp-hero-badge"><LockKey size={14} weight="fill" /> Salaries encrypted on-chain</span>
         </div>
       </section>
