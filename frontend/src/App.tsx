@@ -480,17 +480,15 @@ function PayrollPanel() {
           <tbody>
             {employees.map((e) => (
               <tr key={e}>
-                <td>
-                  <a className="row-link" href={`${EXPLORER}/address/${e}`} target="_blank" rel="noreferrer" title="Verify on Etherscan">
-                    <span className="mono">{short(e)}</span>
-                    <ArrowSquareOut size={13} weight="bold" />
-                  </a>
-                </td>
+                <td className="mono">{short(e)}</td>
                 <td className="mono">
                   {reveal[e] ? (reveal[e] === "denied" ? "Denied" : reveal[e]) : "Encrypted"}
                 </td>
-                <td>
+                <td className="row-actions">
                   <button className="link" onClick={() => revealSalary(e)}>reveal</button>
+                  <a className="link" href={`${EXPLORER}/address/${e}`} target="_blank" rel="noreferrer">
+                    verify <ArrowSquareOut size={12} weight="bold" />
+                  </a>
                 </td>
               </tr>
             ))}
