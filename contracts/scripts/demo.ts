@@ -88,7 +88,7 @@ async function main() {
   const totalHandle = (await vault.read.totalPayrollHandle([owner.address])) as `0x${string}`;
   console.log(`3) Company decrypts total payroll …`);
   const totalAsOwner = await decryptWithRetry(ownerHandle, totalHandle, "owner");
-  console.log(`   ✅ total (company view) = ${totalAsOwner}  (expected ${SALARY})`);
+  console.log(`   total (company view) = ${totalAsOwner}  (expected ${SALARY})`);
 
   // 4. Grant an auditor access to the TOTAL only, then decrypt as auditor.
   const auditor = privateKeyToAccount(generatePrivateKey());
@@ -98,16 +98,16 @@ async function main() {
   const auditorWallet = createWalletClient({ account: auditor, chain: sepolia, transport: http(RPC) });
   const auditorHandle = await createViemHandleClient(auditorWallet);
   const totalAsAuditor = await decryptWithRetry(auditorHandle, totalHandle, "auditor");
-  console.log(`   ✅ total (auditor view) = ${totalAsAuditor}`);
+  console.log(`   total (auditor view) = ${totalAsAuditor}`);
 
   // 5. Selective disclosure: auditor must NOT see the individual salary.
   const salaryHandle = (await vault.read.salaryHandleOf([owner.address, employee.address])) as `0x${string}`;
   console.log(`5) Auditor tries to read an INDIVIDUAL salary (must fail) …`);
   try {
     await auditorHandle.decrypt(salaryHandle);
-    console.log(`   ❌ SECURITY FAIL: auditor decrypted an individual salary!`);
+    console.log(`   SECURITY FAIL: auditor decrypted an individual salary!`);
   } catch {
-    console.log(`   ✅ correctly DENIED — auditor cannot see individual salaries.`);
+    console.log(`   correctly DENIED — auditor cannot see individual salaries.`);
   }
 
   // 6. Run payroll: pay the employee confidentially, then the employee decrypts
@@ -119,9 +119,9 @@ async function main() {
   const empWallet = createWalletClient({ account: employee, chain: sepolia, transport: http(RPC) });
   const empHandle = await createViemHandleClient(empWallet);
   const pay = await decryptWithRetry(empHandle, payHandle, "employee");
-  console.log(`   ✅ employee decrypted their confidential pay = ${pay}  (expected ${SALARY})`);
+  console.log(`   employee decrypted their confidential pay = ${pay}  (expected ${SALARY})`);
 
-  console.log(`\n🎉 End-to-end confidential payroll flow verified on Sepolia (funding → encrypted split → confidential payout).`);
+  console.log(`\nEnd-to-end confidential payroll flow verified on Sepolia (funding → encrypted split → confidential payout).`);
 }
 
 main().catch((e) => {

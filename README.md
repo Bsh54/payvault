@@ -3,15 +3,14 @@
 > Pay your team on-chain **without ever revealing salaries** — while staying fully auditable.
 > Built for the **iExec WTF Hackathon (Summer Edition)** on **Nox**, iExec's confidential smart-contract layer.
 
-**🌐 Live demo:** https://payvault.shadrakbessanh.me
-**⛓️ Network:** Ethereum Sepolia (chainId 11155111)
+**Live demo:** https://payvault.shadrakbessanh.me
+**Network:** Ethereum Sepolia (chainId 11155111)
 
 ---
 
 ## The problem
 
-Public blockchains expose **everything**. If a company pays its team on-chain (e.g. via a Sablier stream or a Safe treasury), the whole world can see **who earns how much**. That is a non-starter for real businesses.
-But if you hide *everything*, how does an auditor or tax authority verify compliance?
+Public blockchains expose **everything**. If a company pays its team on-chain (e.g. via a Sablier stream or a Safe treasury), the whole world can see **who earns how much**. That is a non-starter for real businesses. But if you hide *everything*, how does an auditor or tax authority verify compliance?
 
 ## The solution
 
@@ -24,14 +23,22 @@ But if you hide *everything*, how does an auditor or tax authority verify compli
 
 ```
 Company (MetaMask)
-   │  1 public Sablier stream (lump sum)         ← public sees only the total
-   ▼
-PayrollVault (Nox confidential contract)         ← per-employee salaries = euint256 (encrypted)
-   │  ACL: company + employee can read a salary
-   │  ACL: auditor can read ONLY the total  ← selective disclosure
-   ▼
+   |  1 public Sablier stream (lump sum)         <- public sees only the total
+   v
+PayrollVault (Nox confidential contract)         <- per-employee salaries = euint256 (encrypted)
+   |  ACL: company + employee can read a salary
+   |  ACL: auditor can read ONLY the total       <- selective disclosure
+   v
 Off-chain TEE (Nox Runner) computes on encrypted data
 ```
+
+## Roles (three separate surfaces)
+
+| Role | URL | What it does |
+|---|---|---|
+| **Company** | `/app` | Fund payroll, add employees with encrypted salaries, run confidential payout, grant auditors. |
+| **Auditor** | `/audit` | Decrypt the aggregate a company granted, never an individual salary. |
+| **Employee** | `/mypay` | Decrypt only their own received pay. |
 
 ## Deployed addresses (Sepolia)
 
@@ -41,21 +48,24 @@ Off-chain TEE (Nox Runner) computes on encrypted data
 | **PayUSD** (test payroll token) | [`0xda4db7f6f01c01969043521adca9dbe75d7be3ee`](https://sepolia.etherscan.io/address/0xda4db7f6f01c01969043521adca9dbe75d7be3ee) |
 | **Sablier Lockup** (external, unmodified) | [`0xe61cb9153356419bdaD0A8767c059f92d221a3C4`](https://sepolia.etherscan.io/address/0xe61cb9153356419bdaD0A8767c059f92d221a3C4) |
 
-Example public funding stream created by the demo: **Sablier stream #149**.
-
 ## Repository layout
 
 ```
-contracts/           Hardhat 3 + Nox — confidential smart contracts
+contracts/                Hardhat 3 + Nox — confidential smart contracts
   contracts/
-    PayrollVault.sol      multi-tenant confidential payroll + selective disclosure + Sablier link
-    PayUSD.sol            test ERC-20 payroll currency
+    PayrollVault.sol        multi-tenant confidential payroll + selective disclosure + Sablier link
+    PayUSD.sol              test ERC-20 payroll currency
     ConfidentialPiggyBank.sol   Nox hello-world smoke test
   scripts/
-    deploy.ts             deploy PayrollVault + PayUSD
-    demo.ts               end-to-end confidential flow (no mock data)
-    fund-sablier.ts       create a real public Sablier stream funding the vault
-frontend/            Vite + React dashboard (Company / Public / Auditor views)
+    deploy.ts               deploy PayrollVault + PayUSD
+    demo.ts                 end-to-end confidential flow (no mock data)
+    fund-sablier.ts         create a real public Sablier stream funding the vault
+frontend/                 Vite + React dashboard (Company / Auditor / Employee)
+  src/
+    App.tsx                 routing + company dashboard, auditor and employee pages
+    Landing.tsx             public landing (before/after proof, roles, live links)
+    lib/                    contract addresses, ABIs, wagmi config, Nox handle client
+serve.py                  static SPA server (behind a Cloudflare tunnel)
 ```
 
 ## How Nox is used
@@ -87,12 +97,19 @@ npm run dev        # local dev at http://localhost:5173
 npm run build      # static build -> dist/
 ```
 
-The dashboard connects MetaMask, switches to Sepolia, and lets you:
-- **Company:** add employees with encrypted salaries, decrypt your own total, grant an auditor.
-- **Public:** inspect any company — see employee count and the public Sablier budget, but **no individual amounts**.
-- **Auditor:** decrypt the aggregate you were granted — never an individual salary.
+Optional env: `VITE_RPC_URL` (pinned Sepolia RPC) and `VITE_WC_PROJECT_ID` (WalletConnect QR).
 
-See `../TESTER.md` for a step-by-step demo script.
+The dashboard connects MetaMask, switches to Sepolia, and lets you:
+- **Company:** add employees with encrypted salaries, decrypt your own total, run payroll, grant an auditor.
+- **Auditor:** decrypt the aggregate you were granted — never an individual salary.
+- **Employee:** decrypt your own confidential pay — encrypted for everyone else.
+
+## Try the live demo
+
+1. Open https://payvault.shadrakbessanh.me and click **Get started** (Company).
+2. Fund payroll, add an employee, run payroll.
+3. Open `/mypay` as the employee to decrypt your own pay.
+4. Open `/audit` as an auditor to decrypt the company total (never a salary).
 
 ## Deliverables
 

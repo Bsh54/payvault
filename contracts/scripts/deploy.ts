@@ -14,10 +14,10 @@ async function main() {
   console.log(`Chain ID: ${chainId}`);
 
   const vault = await viem.deployContract("PayrollVault", [], { gas: 6_000_000n });
-  console.log(`✅ PayrollVault deployed at: ${vault.address}`);
+  console.log(`PayrollVault deployed at: ${vault.address}`);
 
   const payusd = await viem.deployContract("PayUSD");
-  console.log(`✅ PayUSD deployed at: ${payusd.address}`);
+  console.log(`PayUSD deployed at: ${payusd.address}`);
 
   const out = {
     chainId,
@@ -31,7 +31,7 @@ async function main() {
   mkdirSync(dir, { recursive: true });
   const file = join(dir, `${chainId}.json`);
   writeFileSync(file, JSON.stringify(out, null, 2));
-  console.log(`📝 Wrote ${file}`);
+  console.log(`Wrote ${file}`);
 }
 
 main().catch((err) => {

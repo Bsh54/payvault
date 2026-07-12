@@ -117,16 +117,16 @@ async function main() {
     args: [params, unlockAmounts, 0, durations],
   });
   await publicClient.waitForTransactionReceipt({ hash });
-  console.log(`   ✅ stream created — tx ${hash}`);
+  console.log(`   stream created — tx ${hash}`);
 
   // 3. Record the funding on the vault (public aggregate; per-employee stays secret).
   console.log("3) Linking funding on the vault…");
   await publicClient.waitForTransactionReceipt({ hash: await vault.write.linkFunding([streamId, BUDGET]) });
   const onchainId = await vault.read.sablierStreamId([account.address]);
   const onchainBudget = await vault.read.publicBudget([account.address]);
-  console.log(`   ✅ vault.sablierStreamId = ${onchainId}, publicBudget = ${onchainBudget}`);
+  console.log(`   vault.sablierStreamId = ${onchainId}, publicBudget = ${onchainBudget}`);
 
-  console.log(`\n🎉 Public Sablier funding layer wired. Stream #${streamId} funds the vault publicly;`);
+  console.log(`\nPublic Sablier funding layer wired. Stream #${streamId} funds the vault publicly;`);
   console.log(`   individual salaries remain encrypted via Nox.`);
 }
 

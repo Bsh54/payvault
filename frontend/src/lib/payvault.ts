@@ -2,6 +2,11 @@ import { sepolia } from "viem/chains";
 
 // Deployed PayrollVault (multi-tenant) on ETH Sepolia.
 export const CHAIN = sepolia;
+// Pinned public RPC. The default viem fallback is rate-limited and can make the
+// Nox handle-gateway lookup fail intermittently while decrypting; a stable
+// endpoint avoids that. Override with VITE_RPC_URL if needed.
+export const RPC_URL =
+  import.meta.env.VITE_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
 export const PAYROLL_VAULT_ADDRESS =
   "0x48e48f43ee633da6ae5a5a433f4f1c3f69ea5d8f" as const;
 export const PAYUSD_ADDRESS =
@@ -10,8 +15,8 @@ export const SABLIER_ADDRESS =
   "0xe61cb9153356419bdaD0A8767c059f92d221a3C4" as const;
 
 export const EXPLORER = "https://sepolia.etherscan.io";
-// A demo company (the deployer wallet) with real encrypted payroll, used to
-// pre-fill the public verification page so visitors see a live example.
+// A demo company (the deployer wallet) with real encrypted payroll, referenced
+// by the landing "before / after" proof so visitors see a live example.
 export const DEMO_COMPANY =
   "0x8BEE24f6D3F421601BC044667CCD3ADc0CB39288" as const;
 

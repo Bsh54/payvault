@@ -83,14 +83,6 @@
 }
 .lp-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.2rem; letter-spacing: -0.02em; }
 .lp-nav-actions { display: flex; align-items: center; gap: 10px; }
-.lp-nav-links { display: flex; align-items: center; gap: 26px; }
-.lp-nav-links a, .lp-nav-link {
-  background: none; border: none; cursor: pointer; padding: 0;
-  color: var(--text-2); font-size: 0.92rem; font-weight: 500; font-family: inherit;
-  text-decoration: none; transition: color 0.16s ease;
-}
-.lp-nav-links a:hover, .lp-nav-link:hover { color: var(--text-1); }
-@media (max-width: 860px) { .lp-nav-links { display: none; } }
 .lp-logo-mark {
   width: 34px; height: 34px; border-radius: 10px; background: var(--grad);
   display: flex; align-items: center; justify-content: center; color: #04150e; flex-shrink: 0;
@@ -167,8 +159,7 @@
 .lp-feature p { color: var(--text-2); line-height: 1.6; margin: 0; }
 .lp-feature em { color: var(--text); font-style: normal; font-weight: 700; }
 
-/* Built with — logo chips */
-/* Role selector */
+/* Built with — scrolling logo marquee */
 .lp-trust { max-width: 1120px; margin: 0 auto; padding: 56px 0; text-align: center; }
 .lp-trust-label { display: block; color: var(--text-3); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 700; margin-bottom: 26px; }
 .lp-marquee {
@@ -208,58 +199,13 @@
   display: flex; align-items: center; justify-content: space-between; color: var(--text-3); font-size: 0.82rem;
 }
 
-/* Public verification page */
+/* Standalone role pages (employee /mypay, auditor /audit) */
 .verify .lp-nav { justify-content: space-between; }
 .verify-hero { max-width: 720px; margin: 0 auto; text-align: center; padding: clamp(30px, 6vw, 60px) 24px 30px; }
 .verify-hero .eyebrow { margin-bottom: 20px; }
 .verify-hero h1 { font-size: clamp(2rem, 5vw, 3rem); letter-spacing: -0.03em; font-weight: 700; margin: 0 0 16px; }
 .verify-hero .lp-sub { margin: 0 auto 26px; }
 .verify-body { max-width: 720px; margin: 0 auto; padding: 10px 24px 70px; }
-
-/* Auth — split screen */
-.auth-split { min-height: 100dvh; display: grid; grid-template-columns: 1fr 1fr; }
-.auth-left {
-  position: relative; padding: 44px; display: flex;
-  background:
-    linear-gradient(160deg, rgba(7,11,22,0.62) 0%, rgba(7,11,22,0.86) 100%),
-    linear-gradient(120deg, rgba(59,130,246,0.30), rgba(16,185,129,0.22)),
-    url('https://images.unsplash.com/photo-1639322537228-f710d846310a?auto=format&fit=crop&w=1400&q=80');
-  background-size: cover; background-position: center;
-  border-right: 1px solid var(--border-soft);
-}
-.auth-left-overlay { display: flex; flex-direction: column; justify-content: space-between; width: 100%; }
-.auth-left-text { max-width: 420px; }
-.auth-left-text h2 { font-size: clamp(1.8rem, 3vw, 2.6rem); letter-spacing: -0.03em; font-weight: 700; margin: 0 0 14px; line-height: 1.08; }
-.auth-left-text p { color: rgba(234,240,250,0.82); font-size: 1.02rem; line-height: 1.6; margin: 0; }
-.auth-back {
-  position: absolute; top: 28px; left: 28px; display: inline-flex; align-items: center; gap: 6px;
-  background: none; border: none; color: var(--text-2); font-family: var(--lp-font); font-size: 0.9rem; font-weight: 600; cursor: pointer;
-}
-.auth-back:hover { color: var(--text); }
-.auth-right { display: flex; align-items: center; justify-content: center; padding: 40px; }
-.auth-card { width: 100%; max-width: 380px; text-align: left; }
-.auth-brand-mobile { display: none; margin-bottom: 26px; }
-.auth-card h1 { font-size: 1.6rem; letter-spacing: -0.025em; font-weight: 700; margin: 0 0 22px; }
-.auth-connect { width: 100%; justify-content: center; }
-.auth-perks { list-style: none; padding: 0; margin: 22px 0 0; display: flex; flex-direction: column; gap: 10px; }
-.auth-perks li { display: flex; align-items: center; gap: 8px; color: var(--text-2); font-size: 0.88rem; }
-.auth-perks li svg { color: var(--green-2); }
-.auth-connected { display: inline-flex; align-items: center; gap: 6px; color: var(--green-2); font-size: 0.82rem; font-weight: 700; background: var(--green-soft); border: 1px solid rgba(16,185,129,0.25); padding: 5px 12px; border-radius: 999px; margin-bottom: 18px; }
-.auth-label { display: block; text-align: left; font-size: 0.8rem; color: var(--text-3); font-weight: 600; margin-bottom: 8px; }
-.auth-input-wrap { display: flex; align-items: center; gap: 10px; background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 12px; padding: 0 14px; margin-bottom: 22px; color: var(--text-3); }
-.auth-input-wrap:focus-within { border-color: var(--primary); }
-.auth-input-wrap input { flex: 1; background: none; border: none; outline: none; color: var(--text); font-family: var(--lp-font); font-size: 1rem; padding: 13px 0; }
-.auth-actions { display: flex; gap: 10px; }
-.auth-actions .lp-btn { flex: 1; justify-content: center; }
-
-@media (max-width: 860px) {
-  .auth-split { grid-template-columns: 1fr; }
-  .auth-left { display: none; }
-  .auth-brand-mobile { display: flex; justify-content: center; }
-  .auth-card { text-align: center; max-width: 420px; }
-  .auth-card h1 { text-align: center; }
-  .auth-label { text-align: center; }
-}
 
 button:focus-visible, a:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; border-radius: 6px; }
 @media (max-width: 860px) {

@@ -1,6 +1,7 @@
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { sepolia } from "wagmi/chains";
 import { http } from "wagmi";
+import { RPC_URL } from "./payvault";
 
 // WalletConnect projectId enables the mobile QR flow. Get a free one at
 // https://cloud.reown.com and set VITE_WC_PROJECT_ID. Injected wallets
@@ -13,7 +14,7 @@ export const wagmiConfig = getDefaultConfig({
   projectId,
   chains: [sepolia],
   transports: {
-    [sepolia.id]: http(),
+    [sepolia.id]: http(RPC_URL),
   },
   ssr: false,
 });
