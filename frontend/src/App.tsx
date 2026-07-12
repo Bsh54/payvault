@@ -32,6 +32,7 @@ import {
   handleClient,
   decryptWithRetry,
   publicClient,
+  logsClient,
   sendVaultTx,
   sendTo,
   withdrawAll,
@@ -919,7 +920,7 @@ function AuditorsPanel() {
   async function loadAuditors() {
     if (!address) return;
     try {
-      const pc = publicClient();
+      const pc = logsClient();
       const latest = await pc.getBlockNumber();
       const fromBlock = latest > 50000n ? latest - 50000n : 0n;
       const grantedEv = parseAbiItem("event AuditorGranted(address indexed company, address indexed auditor)");
@@ -1043,7 +1044,7 @@ function EmployeePanel() {
       }
       // Payment history: PayrollRun events emitted by the employers of this wallet.
       try {
-        const pc = publicClient();
+        const pc = logsClient();
         const latest = await pc.getBlockNumber();
         const fromBlock = latest > 50000n ? latest - 50000n : 0n;
         const ev = parseAbiItem("event PayrollRun(address indexed company, uint256 employeeCount)");

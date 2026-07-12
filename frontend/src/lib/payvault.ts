@@ -7,6 +7,10 @@ export const CHAIN = sepolia;
 // endpoint avoids that. Override with VITE_RPC_URL if needed.
 export const RPC_URL =
   import.meta.env.VITE_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
+// Separate endpoint for eth_getLogs (event history). publicnode rejects log range
+// queries without a paid archive token, so we use a getLogs-friendly gateway here.
+export const LOGS_RPC_URL =
+  import.meta.env.VITE_LOGS_RPC_URL || "https://sepolia.gateway.tenderly.co";
 export const PAYROLL_VAULT_ADDRESS =
   "0x5c37c25e88edfce2b0b19e11f74c9422a42dd5cc" as const;
 export const PAYUSD_ADDRESS =

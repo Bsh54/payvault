@@ -8,13 +8,18 @@ import {
   type PublicClient,
 } from "viem";
 import { createViemHandleClient } from "@iexec-nox/handle";
-import { CHAIN, RPC_URL, PAYROLL_VAULT_ABI, PAYROLL_VAULT_ADDRESS } from "./payvault";
+import { CHAIN, RPC_URL, LOGS_RPC_URL, PAYROLL_VAULT_ABI, PAYROLL_VAULT_ADDRESS } from "./payvault";
 
 export const ZERO_HANDLE =
   "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 export function publicClient(): PublicClient {
   return createPublicClient({ chain: CHAIN, transport: http(RPC_URL) });
+}
+
+/** Client for eth_getLogs (event history) — publicnode rejects log ranges. */
+export function logsClient(): PublicClient {
+  return createPublicClient({ chain: CHAIN, transport: http(LOGS_RPC_URL) });
 }
 
 /** Read-only contract instance (no wallet needed). */
