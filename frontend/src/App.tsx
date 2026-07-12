@@ -914,6 +914,34 @@ function AuditorsPanel() {
   const [auditor, setAuditor] = useState("");
   const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [granted, setGranted] = useState<Address[]>([]);
+
+  async function loadAuditors() {
+    if (!address) return;
+    try {
+      const pc = publicClient();
+      const latest = await pc.getBlockNumber();
+      const fromBlock = latest > 50000n ? latest - 50000n : 0n;
+      const grantedEv = parseAbiItem("event AuditorGranted(address indexed company, address indexed auditor)");
+      const revokedEv = parseAbiItem("event AuditorRevoked(address indexed company, address indexed auditor)");
+      const [gLogs, rLogs] = await Promise.all([
+        pc.getLogs({ address: PAYROLL_VAULT_ADDRESS, event: grantedEv, args: { company: address }, fromBlock }),
+        pc.getLogs({ address: PAYROLL_VAULT_ADDRESS, event: revokedEv, args: { company: address }, fromBlock }),
+      ]);
+      const candidates = Array.from(new Set(gLogs.map((l) => (l.args as { auditor: Address }).auditor)));
+      const active: Address[] = [];
+      for (const a of candidates) {
+        const on = (await readVault().read.isAuditor([address, a])) as boolean;
+        if (on) active.push(a);
+      }
+      setGranted(active);
+    } catch {
+      /* best effort */
+    }
+  }
+  useEffect(() => {
+    loadAuditors();
+  }, [address]);
 
   if (!address)
     return (
@@ -934,6 +962,7 @@ function AuditorsPanel() {
       await publicClient().waitForTransactionReceipt({ hash: tx });
       setResult({ ok: true, msg: `Auditor ${short(auditor)} can now verify the total.` });
       setAuditor("");
+      loadAuditors();
     } catch (e: any) {
       setResult({ ok: false, msg: e.shortMessage || e.message || String(e) });
     } finally {
@@ -941,17 +970,15 @@ function AuditorsPanel() {
     }
   }
 
-  async function revokeAuditor() {
+  async function revoke(a: Address) {
     setResult(null);
-    if (!isAddress(auditor, { strict: false }))
-      return setResult({ ok: false, msg: "Invalid auditor address." });
     if (!walletClient) return;
     setBusy(true);
     try {
-      const tx = await sendVaultTx(walletClient, "revokeAuditor", [auditor as Address]);
+      const tx = await sendVaultTx(walletClient, "revokeAuditor", [a]);
       await publicClient().waitForTransactionReceipt({ hash: tx });
-      setResult({ ok: true, msg: `Access revoked for ${short(auditor)}.` });
-      setAuditor("");
+      setResult({ ok: true, msg: `Access revoked for ${short(a)}.` });
+      loadAuditors();
     } catch (e: any) {
       setResult({ ok: false, msg: e.shortMessage || e.message || String(e) });
     } finally {
@@ -967,15 +994,26 @@ function AuditorsPanel() {
       </p>
       <label>Auditor wallet</label>
       <input placeholder="0x…" value={auditor} onChange={(e) => setAuditor(e.target.value)} />
-      <div className="row">
-        <button className="btn" disabled={busy} onClick={grantAuditor}>
-          {busy ? <CircleNotch size={17} weight="bold" className="spin" /> : <ShieldCheck size={17} weight="bold" />} Grant aggregate access
-        </button>
-        <button className="btn ghost" disabled={busy} onClick={revokeAuditor}>
-          <XCircle size={17} weight="bold" /> Revoke access
-        </button>
-      </div>
+      <button className="btn" disabled={busy} onClick={grantAuditor}>
+        {busy ? <CircleNotch size={17} weight="bold" className="spin" /> : <ShieldCheck size={17} weight="bold" />} Grant aggregate access
+      </button>
       {result && <ResultBanner ok={result.ok}>{result.msg}</ResultBanner>}
+
+      {granted.length > 0 && (
+        <div className="auditor-list">
+          <div className="employers-label">Auditors with access</div>
+          {granted.map((a) => (
+            <div key={a} className="auditor-row">
+              <a className="mono" href={`${EXPLORER}/address/${a}`} target="_blank" rel="noreferrer">
+                <MagnifyingGlass size={14} weight="bold" /> {short(a)}
+              </a>
+              <button className="link danger" disabled={busy} onClick={() => revoke(a)}>
+                <XCircle size={13} weight="bold" /> revoke
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="mini-steps">
         <div className="mini-step"><span className="hint-num">1</span> Grant access to the auditor's wallet above.</div>

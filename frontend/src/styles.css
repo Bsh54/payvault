@@ -297,3 +297,16 @@ td .spin { vertical-align: middle; margin-right: 6px; color: var(--text-3); }
 .modal-close:hover { color: var(--text); border-color: var(--primary); }
 @keyframes overlay-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes modal-in { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+
+/* Auditors with access */
+.auditor-list { margin-top: 22px; }
+.auditor-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border: 1px solid var(--border-soft); border-radius: 11px; background: var(--bg-card); margin-bottom: 8px; }
+.auditor-row a.mono { display: inline-flex; align-items: center; gap: 8px; color: var(--text); text-decoration: none; font-size: .9rem; }
+.auditor-row a.mono svg { color: var(--green-2); }
+.auditor-row a.mono:hover { color: var(--green-2); }
+.auditor-row .link.danger {
+  display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 9px;
+  border: 1px solid rgba(248,113,113,0.28); background: none; color: #f87171; font-size: .82rem; font-weight: 600;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.auditor-row .link.danger:hover { color: #fff; border-color: #ef4444; background: rgba(239,68,68,0.14); }
