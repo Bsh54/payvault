@@ -247,3 +247,7 @@ footer { margin-top: 40px; text-align: center; color: var(--text-3); font-size: 
   .grid { grid-template-columns: 1fr; }
   .ba-grid { grid-template-columns: 1fr; }
 }
+
+.paid-tick { color: var(--green-2); vertical-align: middle; margin-right: 6px; }
+td .spin { vertical-align: middle; margin-right: 6px; color: var(--text-3); }
+.amount-field.inline { max-width: 220px; }

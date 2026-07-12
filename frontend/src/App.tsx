@@ -513,6 +513,9 @@ function PayrollPanel() {
   const [employees, setEmployees] = useState<Address[]>([]);
   const [reveal, setReveal] = useState<Record<string, string>>({});
   const [showAdd, setShowAdd] = useState(false);
+  const [editing, setEditing] = useState<Address | "">("");
+  const [editSalary, setEditSalary] = useState("");
+  const [paying, setPaying] = useState<Record<string, "pending" | "done">>({});
 
   async function refresh() {
     if (!address) return;
@@ -577,15 +580,50 @@ function PayrollPanel() {
     }
   }
 
+  async function saveSalary(e: Address) {
+    setResult(null);
+    let amount: bigint;
+    try {
+      amount = BigInt(editSalary);
+      if (amount <= 0n) throw new Error();
+    } catch {
+      return setResult({ ok: false, msg: "Enter a positive salary." });
+    }
+    if (!walletClient) return;
+    setBusy(true);
+    try {
+      const hc = await handleClient(walletClient);
+      const { handle, handleProof } = await hc.encryptInput(amount, "uint256", PAYROLL_VAULT_ADDRESS);
+      const tx = await sendVaultTx(walletClient, "updateSalary", [e, handle, handleProof]);
+      await publicClient().waitForTransactionReceipt({ hash: tx });
+      setResult({ ok: true, msg: `Salary updated for ${short(e)}.` });
+      setReveal((r) => ({ ...r, [e]: "" }));
+      setEditing("");
+      setEditSalary("");
+    } catch (err: any) {
+      setResult({ ok: false, msg: err.shortMessage || err.message || String(err) });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function runPayroll() {
     if (!walletClient) return;
     setBusy(true);
     setResult(null);
+    // Mark every employee as pending; the payout is one atomic tx.
+    setPaying(Object.fromEntries(employees.map((e) => [e, "pending"])) as Record<string, "pending">);
     try {
       const tx = await sendVaultTx(walletClient, "runPayroll", []);
       await publicClient().waitForTransactionReceipt({ hash: tx });
-      setResult({ ok: true, msg: "Payroll paid." });
+      // Reveal the paid state one by one for a clear visual confirmation.
+      for (const e of employees) {
+        setPaying((p) => ({ ...p, [e]: "done" }));
+        await new Promise((r) => setTimeout(r, 260));
+      }
+      setResult({ ok: true, msg: `Payroll paid to ${employees.length} employee${employees.length > 1 ? "s" : ""}.` });
     } catch (e: any) {
+      setPaying({});
       setResult({ ok: false, msg: e.shortMessage || e.message || String(e) });
     } finally {
       setBusy(false);
@@ -634,16 +672,37 @@ function PayrollPanel() {
           <tbody>
             {employees.map((e) => (
               <tr key={e}>
-                <td className="mono">{short(e)}</td>
                 <td className="mono">
-                  {reveal[e] ? (reveal[e] === "denied" ? "Denied" : reveal[e]) : "Encrypted"}
+                  {paying[e] === "done" ? <CheckCircle size={14} weight="fill" className="paid-tick" /> : paying[e] === "pending" ? <CircleNotch size={14} weight="bold" className="spin" /> : null}
+                  {short(e)}
                 </td>
-                <td className="row-actions">
-                  <button className="link" onClick={() => revealSalary(e)}>reveal</button>
-                  <a className="link" href={`${EXPLORER}/address/${e}`} target="_blank" rel="noreferrer">
-                    verify <ArrowSquareOut size={12} weight="bold" />
-                  </a>
-                </td>
+                {editing === e ? (
+                  <td colSpan={2}>
+                    <div className="amount-field inline">
+                      <input autoFocus type="number" inputMode="decimal" placeholder="New salary" value={editSalary} onChange={(ev) => setEditSalary(ev.target.value)} />
+                      <span className="amount-suffix">PayUSD</span>
+                    </div>
+                    <div className="row" style={{ marginTop: 8 }}>
+                      <button className="btn sm" disabled={busy} onClick={() => saveSalary(e)}>
+                        {busy ? <CircleNotch size={14} weight="bold" className="spin" /> : <LockKey size={14} weight="bold" />} Save
+                      </button>
+                      <button className="btn ghost sm" onClick={() => { setEditing(""); setEditSalary(""); }}>Cancel</button>
+                    </div>
+                  </td>
+                ) : (
+                  <>
+                    <td className="mono">
+                      {reveal[e] ? (reveal[e] === "denied" ? "Denied" : reveal[e]) : "Encrypted"}
+                    </td>
+                    <td className="row-actions">
+                      <button className="link" onClick={() => revealSalary(e)}>reveal</button>
+                      <button className="link" onClick={() => { setEditing(e); setEditSalary(""); setResult(null); }}>edit</button>
+                      <a className="link" href={`${EXPLORER}/address/${e}`} target="_blank" rel="noreferrer">
+                        verify <ArrowSquareOut size={12} weight="bold" />
+                      </a>
+                    </td>
+                  </>
+                )}
               </tr>
             ))}
           </tbody>
@@ -853,6 +912,24 @@ function AuditorsPanel() {
     }
   }
 
+  async function revokeAuditor() {
+    setResult(null);
+    if (!isAddress(auditor, { strict: false }))
+      return setResult({ ok: false, msg: "Invalid auditor address." });
+    if (!walletClient) return;
+    setBusy(true);
+    try {
+      const tx = await sendVaultTx(walletClient, "revokeAuditor", [auditor as Address]);
+      await publicClient().waitForTransactionReceipt({ hash: tx });
+      setResult({ ok: true, msg: `Access revoked for ${short(auditor)}.` });
+      setAuditor("");
+    } catch (e: any) {
+      setResult({ ok: false, msg: e.shortMessage || e.message || String(e) });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="card">
       <h3>Grant an auditor</h3>
@@ -861,9 +938,14 @@ function AuditorsPanel() {
       </p>
       <label>Auditor wallet</label>
       <input placeholder="0x…" value={auditor} onChange={(e) => setAuditor(e.target.value)} />
-      <button className="btn" disabled={busy} onClick={grantAuditor}>
-        {busy ? <CircleNotch size={17} weight="bold" className="spin" /> : <ShieldCheck size={17} weight="bold" />} Grant aggregate access
-      </button>
+      <div className="row">
+        <button className="btn" disabled={busy} onClick={grantAuditor}>
+          {busy ? <CircleNotch size={17} weight="bold" className="spin" /> : <ShieldCheck size={17} weight="bold" />} Grant aggregate access
+        </button>
+        <button className="btn ghost" disabled={busy} onClick={revokeAuditor}>
+          <XCircle size={17} weight="bold" /> Revoke access
+        </button>
+      </div>
       {result && <ResultBanner ok={result.ok}>{result.msg}</ResultBanner>}
 
       <div className="mini-steps">

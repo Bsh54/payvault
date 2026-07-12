@@ -60,6 +60,23 @@ export const PAYROLL_VAULT_ABI = [
   },
   {
     type: "function",
+    name: "revokeAuditor",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "auditor", type: "address" }],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "isAuditor",
+    stateMutability: "view",
+    inputs: [
+      { name: "company", type: "address" },
+      { name: "auditor", type: "address" },
+    ],
+    outputs: [{ type: "bool" }],
+  },
+  {
+    type: "function",
     name: "totalPayrollHandle",
     stateMutability: "view",
     inputs: [{ name: "company", type: "address" }],
