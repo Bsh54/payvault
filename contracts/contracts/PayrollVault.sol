@@ -1,23 +1,25 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.27;
+pragma solidity ^0.8.28;
 
+import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import {Nox, euint256, externalEuint256} from "@iexec-nox/nox-protocol-contracts/contracts/sdk/Nox.sol";
-import {ERC7984} from "@iexec-nox/nox-confidential-contracts/contracts/token/ERC7984.sol";
+import {ERC20ToERC7984Wrapper} from "@iexec-nox/nox-confidential-contracts/contracts/token/extensions/ERC20ToERC7984Wrapper.sol";
 
-/// @title PayrollVault (multi-tenant)
-/// @notice Confidential payroll registry built on Nox. Any wallet is automatically
-///         the owner of its OWN payroll book, keyed by `msg.sender` (the company).
-///         Individual salaries are stored as encrypted handles (euint256), decryptable
-///         only by the company and the employee. An encrypted running total lets an
-///         authorized auditor verify the aggregate payroll WITHOUT seeing individual
-///         salaries (selective disclosure).
-/// @dev    Underlying public protocols (Safe treasury / Sablier funding) are never
-///         modified: this contract layers confidentiality on top of them.
-contract PayrollVault is ERC7984 {
-    // PayrollVault is itself an ERC-7984 confidential token ("cPAY"): running
-    // payroll mints a confidential balance (= the employee's salary) to each
-    // employee. Balances are encrypted; only the holder can decrypt their pay.
-    constructor() ERC7984("PayVault Confidential Pay", "cPAY", "") {}
+/// @title PayrollVault v2 (multi-tenant, backed by a public ERC-20)
+/// @notice Confidential payroll registry on Nox. Every wallet owns its OWN payroll
+///         book keyed by `msg.sender` (the company). Individual salaries are stored as
+///         encrypted handles (euint256), decryptable only by the company and the employee.
+///         An encrypted running total lets an authorized auditor verify the aggregate
+///         payroll WITHOUT seeing individual salaries (selective disclosure).
+/// @dev    The vault is an ERC-7984 confidential token ("cPAY") wrapping a public ERC-20
+///         (PayUSD). Running payroll mints confidential cPAY to each employee equal to
+///         their encrypted salary. An employee can `unwrap` their cPAY back into real
+///         public PayUSD via a public-decryption proof — closing the money loop while
+///         keeping the amount hidden until the employee themselves cashes out.
+contract PayrollVault is ERC20ToERC7984Wrapper {
+    constructor(IERC20 payUSD)
+        ERC20ToERC7984Wrapper("PayVault Confidential Pay", "cPAY", "", payUSD)
+    {}
 
     // company => has its total been initialized as an encrypted zero?
     mapping(address => bool) private _initialized;
@@ -25,6 +27,8 @@ contract PayrollVault is ERC7984 {
     mapping(address => euint256) private _totalPayroll;
     // company => list of employees
     mapping(address => address[]) private _employees;
+    // company => employee => 1-based index in _employees (0 = not present)
+    mapping(address => mapping(address => uint256)) private _employeeIndex;
     // company => employee => is on payroll
     mapping(address => mapping(address => bool)) public isEmployee;
     // company => employee => encrypted salary handle
@@ -32,14 +36,17 @@ contract PayrollVault is ERC7984 {
     // company => auditor => granted aggregate view
     mapping(address => mapping(address => bool)) public isAuditor;
 
+    // employee => companies that have ever employed them (addresses only, no amounts)
+    mapping(address => address[]) private _employersOf;
+    mapping(address => mapping(address => bool)) private _isEmployedBy;
+
     // --- Public funding layer (Sablier) ---
-    // The company funds the vault with ONE public Sablier stream (a lump sum).
-    // The public sees the aggregate budget; the per-employee split stays encrypted.
     mapping(address => uint256) public sablierStreamId;
     mapping(address => uint256) public publicBudget;
 
     // Public events carry NO amounts — only addresses.
     event EmployeeAdded(address indexed company, address indexed employee);
+    event EmployeeRemoved(address indexed company, address indexed employee);
     event SalaryUpdated(address indexed company, address indexed employee);
     event AuditorGranted(address indexed company, address indexed auditor);
     event AuditorRevoked(address indexed company, address indexed auditor);
@@ -72,6 +79,12 @@ contract PayrollVault is ERC7984 {
         _salary[company][employee] = salary;
         isEmployee[company][employee] = true;
         _employees[company].push(employee);
+        _employeeIndex[company][employee] = _employees[company].length;
+
+        if (!_isEmployedBy[employee][company]) {
+            _isEmployedBy[employee][company] = true;
+            _employersOf[employee].push(company);
+        }
 
         euint256 total = Nox.add(_totalPayroll[company], salary);
         _totalPayroll[company] = total;
@@ -113,9 +126,36 @@ contract PayrollVault is ERC7984 {
         emit SalaryUpdated(company, employee);
     }
 
+    /// @notice Remove an employee from the caller's payroll and subtract their
+    ///         encrypted salary from the encrypted running total.
+    function removeEmployee(address employee) external {
+        address company = msg.sender;
+        require(isEmployee[company][employee], "PayrollVault: not employee");
+
+        euint256 total = Nox.sub(_totalPayroll[company], _salary[company][employee]);
+        _totalPayroll[company] = total;
+
+        // swap-and-pop removal from the employee list
+        address[] storage list = _employees[company];
+        uint256 idx = _employeeIndex[company][employee]; // 1-based
+        uint256 lastPos = list.length - 1;
+        address lastEmp = list[lastPos];
+        list[idx - 1] = lastEmp;
+        _employeeIndex[company][lastEmp] = idx;
+        list.pop();
+
+        delete _employeeIndex[company][employee];
+        // Note: the encrypted salary handle is a value type and cannot be `delete`d;
+        // access is gated by isEmployee, and a later re-add overwrites it.
+        isEmployee[company][employee] = false;
+
+        Nox.allowThis(total);
+        Nox.allow(total, company);
+
+        emit EmployeeRemoved(company, employee);
+    }
+
     /// @notice Grant an auditor read access to the caller's AGGREGATE payroll only.
-    ///         Selective disclosure: the auditor can decrypt the total, but has no
-    ///         access to any individual salary handle.
     function grantAuditor(address auditor) external {
         require(auditor != address(0), "PayrollVault: zero address");
         address company = msg.sender;
@@ -133,8 +173,6 @@ contract PayrollVault is ERC7984 {
     /// @notice Run payroll: pay every employee their (encrypted) salary as a
     ///         confidential cPAY balance. Amounts stay hidden on-chain; only each
     ///         employee (and the ACL) can decrypt their own received pay.
-    /// @dev    Same-contract mint reuses the stored salary handle (already
-    ///         `allowThis`-ed), so no cross-contract handle sharing is needed.
     function runPayroll() external {
         address company = msg.sender;
         require(_initialized[company], "PayrollVault: no payroll yet");
@@ -147,8 +185,6 @@ contract PayrollVault is ERC7984 {
     }
 
     /// @notice Record the public Sablier stream that funds this company's payroll.
-    /// @dev    The stream itself is created directly on Sablier (recipient = this vault);
-    ///         here we just bookkeep the public lump-sum amount and stream id.
     function linkFunding(uint256 streamId, uint256 publicAmount) external {
         sablierStreamId[msg.sender] = streamId;
         publicBudget[msg.sender] = publicAmount;
@@ -181,5 +217,10 @@ contract PayrollVault is ERC7984 {
 
     function employees(address company) external view returns (address[] memory) {
         return _employees[company];
+    }
+
+    /// @notice Companies that have ever employed `employee` (addresses only).
+    function employersOf(address employee) external view returns (address[] memory) {
+        return _employersOf[employee];
     }
 }

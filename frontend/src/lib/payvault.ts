@@ -8,9 +8,9 @@ export const CHAIN = sepolia;
 export const RPC_URL =
   import.meta.env.VITE_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
 export const PAYROLL_VAULT_ADDRESS =
-  "0x48e48f43ee633da6ae5a5a433f4f1c3f69ea5d8f" as const;
+  "0x5c37c25e88edfce2b0b19e11f74c9422a42dd5cc" as const;
 export const PAYUSD_ADDRESS =
-  "0xda4db7f6f01c01969043521adca9dbe75d7be3ee" as const;
+  "0xf187422619859a5be5a2db1a275da7a1532d930a" as const;
 export const SABLIER_ADDRESS =
   "0xe61cb9153356419bdaD0A8767c059f92d221a3C4" as const;
 
@@ -150,6 +150,71 @@ export const PAYROLL_VAULT_ABI = [
     stateMutability: "view",
     inputs: [{ name: "account", type: "address" }],
     outputs: [{ type: "bytes32" }],
+  },
+  {
+    type: "function",
+    name: "removeEmployee",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "employee", type: "address" }],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "employersOf",
+    stateMutability: "view",
+    inputs: [{ name: "employee", type: "address" }],
+    outputs: [{ type: "address[]" }],
+  },
+  {
+    type: "function",
+    name: "unwrap",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "from", type: "address" },
+      { name: "to", type: "address" },
+      { name: "amount", type: "bytes32" },
+    ],
+    outputs: [{ type: "bytes32" }],
+  },
+  {
+    type: "function",
+    name: "finalizeUnwrap",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "unwrapRequestId", type: "bytes32" },
+      { name: "decryptedAmountAndProof", type: "bytes" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "unwrapRequester",
+    stateMutability: "view",
+    inputs: [{ name: "unwrapAmount", type: "bytes32" }],
+    outputs: [{ type: "address" }],
+  },
+  {
+    type: "function",
+    name: "underlying",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "address" }],
+  },
+  {
+    type: "event",
+    name: "UnwrapRequested",
+    inputs: [
+      { name: "receiver", type: "address", indexed: true },
+      { name: "amount", type: "bytes32", indexed: false },
+    ],
+  },
+  {
+    type: "event",
+    name: "PayrollRun",
+    inputs: [
+      { name: "company", type: "address", indexed: true },
+      { name: "employeeCount", type: "uint256", indexed: false },
+    ],
   },
   {
     type: "function",

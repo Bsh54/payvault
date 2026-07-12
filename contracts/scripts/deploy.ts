@@ -2,8 +2,8 @@ import { network } from "hardhat";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 
-// Deploys PayrollVault to the selected network (use --network sepolia).
-// Writes the deployed address to ../deployments/<chainId>.json for the frontend.
+// Deploys PayUSD (public ERC-20) then PayrollVault (confidential, backed by PayUSD).
+// Writes the deployed addresses to ../deployments/<chainId>.json for the frontend.
 async function main() {
   const { viem } = await network.connect();
   const publicClient = await viem.getPublicClient();
@@ -13,11 +13,11 @@ async function main() {
   console.log(`Deployer: ${deployer.account.address}`);
   console.log(`Chain ID: ${chainId}`);
 
-  const vault = await viem.deployContract("PayrollVault", [], { gas: 6_000_000n });
-  console.log(`PayrollVault deployed at: ${vault.address}`);
-
   const payusd = await viem.deployContract("PayUSD");
   console.log(`PayUSD deployed at: ${payusd.address}`);
+
+  const vault = await viem.deployContract("PayrollVault", [payusd.address], { gas: 9_000_000n });
+  console.log(`PayrollVault deployed at: ${vault.address}`);
 
   const out = {
     chainId,
