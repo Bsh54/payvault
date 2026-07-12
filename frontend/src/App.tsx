@@ -19,6 +19,8 @@ import {
   SquaresFour,
   ArrowRight,
   EyeSlash,
+  Check,
+  CircleNotch,
 } from "@phosphor-icons/react";
 import {
   readVault,
@@ -529,6 +531,9 @@ function FundingPanel() {
   const [amount, setAmount] = useState("120000");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
+  const [step, setStep] = useState(0);
+
+  const FUND_STEPS = ["Mint PayUSD", "Approve Sablier", "Create stream", "Record funding"];
 
   async function refresh() {
     if (!address) return;
@@ -568,14 +573,15 @@ function FundingPanel() {
       return h;
     };
     setBusy(true);
+    setStatus("");
     try {
-      setStatus("1/4 · Minting PayUSD budget…");
+      setStep(1);
       await wait(sendTo(walletClient, PAYUSD_ADDRESS, PAYUSD_ABI, "mint", [address!, value]));
 
-      setStatus("2/4 · Approving Sablier…");
+      setStep(2);
       await wait(sendTo(walletClient, PAYUSD_ADDRESS, PAYUSD_ABI, "approve", [SABLIER_ADDRESS, value]));
 
-      setStatus("3/4 · Creating public Sablier stream…");
+      setStep(3);
       const nextId = (await publicClient().readContract({
         address: SABLIER_ADDRESS, abi: SABLIER_ABI, functionName: "nextStreamId",
       })) as bigint;
@@ -587,15 +593,17 @@ function FundingPanel() {
         params, { start: 0n, cliff: 0n }, 0, { cliff: 0, total: 30 * 24 * 60 * 60 },
       ]));
 
-      setStatus("4/4 · Linking funding to your vault…");
+      setStep(4);
       await wait(sendVaultTx(walletClient, "linkFunding", [nextId, value]));
 
+      setStep(5);
       setStatus("✅ Payroll funded. The public sees the total; the split stays encrypted.");
       refresh();
     } catch (e: any) {
       setStatus("❌ " + (e.shortMessage || e.message || String(e)));
     } finally {
       setBusy(false);
+      setStep(0);
     }
   }
 
@@ -615,13 +623,50 @@ function FundingPanel() {
         </div>
       )}
 
-      <label>Budget (PayUSD)</label>
-      <div className="row">
-        <input placeholder="e.g. 120000" value={amount} onChange={(e) => setAmount(e.target.value)} />
-        <button className="btn" disabled={busy} onClick={fund}>
+      <label>Amount to deposit</label>
+      <div className="amount-field">
+        <input
+          type="number"
+          inputMode="decimal"
+          placeholder="0"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+        />
+        <span className="amount-suffix">PayUSD</span>
+      </div>
+      <div className="amount-presets">
+        {["50000", "100000", "200000"].map((p) => (
+          <button
+            key={p}
+            className={`chip ${amount === p ? "on" : ""}`}
+            onClick={() => setAmount(p)}
+          >
+            {Number(p).toLocaleString()}
+          </button>
+        ))}
+      </div>
+
+      {busy ? (
+        <div className="fund-steps">
+          {FUND_STEPS.map((s, i) => {
+            const n = i + 1;
+            const state = step > n ? "done" : step === n ? "active" : "";
+            return (
+              <div key={s} className={`fund-step ${state}`}>
+                <span className="fund-step-dot">
+                  {step > n ? <Check size={13} weight="bold" /> : step === n ? <CircleNotch size={13} weight="bold" className="spin" /> : n}
+                </span>
+                <span>{s}</span>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <button className="btn btn-block" onClick={fund}>
           <Money size={17} weight="bold" /> {streamId > 0n ? "Add funds" : "Fund payroll"}
         </button>
-      </div>
+      )}
+
       {status && <div className="status">{status}</div>}
     </div>
   );
