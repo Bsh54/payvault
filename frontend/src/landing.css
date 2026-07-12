@@ -83,6 +83,14 @@
 }
 .lp-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.2rem; letter-spacing: -0.02em; }
 .lp-nav-actions { display: flex; align-items: center; gap: 10px; }
+.lp-nav-links { display: flex; align-items: center; gap: 26px; }
+.lp-nav-links a, .lp-nav-link {
+  background: none; border: none; cursor: pointer; padding: 0;
+  color: var(--text-2); font-size: 0.92rem; font-weight: 500; font-family: inherit;
+  text-decoration: none; transition: color 0.16s ease;
+}
+.lp-nav-links a:hover, .lp-nav-link:hover { color: var(--text-1); }
+@media (max-width: 860px) { .lp-nav-links { display: none; } }
 .lp-logo-mark {
   width: 34px; height: 34px; border-radius: 10px; background: var(--grad);
   display: flex; align-items: center; justify-content: center; color: #04150e; flex-shrink: 0;
@@ -161,20 +169,19 @@
 
 /* Built with — logo chips */
 /* Role selector */
-.lp-roles { max-width: 1040px; margin: 0 auto; padding: 72px 24px 24px; }
-.lp-roles-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.lp-role { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; text-align: left; cursor: pointer; font-family: var(--lp-font); }
-.lp-role-icon { width: 46px; height: 46px; border-radius: 12px; background: var(--primary-soft); color: var(--primary); display: flex; align-items: center; justify-content: center; margin-bottom: 4px; }
-.lp-role h3 { font-size: 1.15rem; margin: 0; letter-spacing: -0.01em; font-weight: 700; }
-.lp-role p { color: var(--text-2); font-size: 0.92rem; line-height: 1.5; margin: 0; }
-.lp-role-cta { display: inline-flex; align-items: center; gap: 5px; color: var(--green-2); font-weight: 700; font-size: 0.85rem; margin-top: 8px; }
-@media (max-width: 760px) { .lp-roles-grid { grid-template-columns: 1fr; } }
-
-.lp-trust { max-width: 900px; margin: 0 auto; padding: 56px 24px; text-align: center; }
-.lp-trust > span { display: block; color: var(--text-3); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 700; margin-bottom: 22px; }
-.lp-trust-logos { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.lp-trust { max-width: 1120px; margin: 0 auto; padding: 56px 0; text-align: center; }
+.lp-trust-label { display: block; color: var(--text-3); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 700; margin-bottom: 26px; }
+.lp-marquee {
+  position: relative; overflow: hidden; width: 100%;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+.lp-marquee-track { display: flex; width: max-content; animation: lp-scroll 26s linear infinite; }
+.lp-marquee:hover .lp-marquee-track { animation-play-state: paused; }
+.lp-marquee-group { display: flex; gap: 14px; padding-right: 14px; flex-shrink: 0; }
+@keyframes lp-scroll { from { transform: translateX(-50%); } to { transform: translateX(0); } }
 .lp-logo-chip {
-  display: inline-flex; align-items: center; gap: 9px; color: var(--text-2); font-weight: 600; font-size: 0.92rem;
+  display: inline-flex; align-items: center; gap: 9px; color: var(--text-2); font-weight: 600; font-size: 0.92rem; white-space: nowrap;
   background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 12px; padding: 9px 15px;
 }
 .lp-logo-monogram { width: 20px; height: 20px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: #1a0f08; }

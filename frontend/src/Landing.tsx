@@ -8,9 +8,6 @@ import {
   SealCheck,
   Money,
   CheckCircle,
-  Buildings,
-  MagnifyingGlass,
-  Wallet,
 } from "@phosphor-icons/react";
 import { EXPLORER, DEMO_PUBLIC_TX, DEMO_CONFIDENTIAL_TX, PAYROLL_VAULT_ADDRESS } from "./lib/payvault";
 
@@ -33,10 +30,13 @@ export function Landing({
           </span>
           <span>PayVault</span>
         </div>
+        <nav className="lp-nav-links">
+          <a href="#how">How it works</a>
+          <a href="#feature">Selective disclosure</a>
+          <button className="lp-nav-link" onClick={onMyPay}>Employees</button>
+          <button className="lp-nav-link" onClick={onAudit}>Auditors</button>
+        </nav>
         <div className="lp-nav-actions">
-          <button className="lp-btn lp-btn-ghost" onClick={onAudit}>
-            Audit
-          </button>
           <button className="lp-btn lp-btn-primary" onClick={onStart}>
             Get started <ArrowRight size={16} weight="bold" />
           </button>
@@ -143,7 +143,7 @@ export function Landing({
       </section>
 
       {/* Selective disclosure — split feature (distinct family) */}
-      <section className="lp-feature">
+      <section className="lp-feature" id="feature">
         <span className="lp-feature-icon"><Faders size={26} weight="duotone" /></span>
         <div>
           <h2>Private for your team. Clear for your auditor.</h2>
@@ -154,54 +154,40 @@ export function Landing({
         </div>
       </section>
 
-      {/* Role selector */}
-      <section className="lp-roles">
-        <div className="lp-section-head">
-          <span className="eyebrow">I'm a…</span>
-          <h2>Built for every side of payroll.</h2>
-        </div>
-        <div className="lp-roles-grid">
-          <button className="lp-card lp-role" onClick={onStart}>
-            <span className="lp-role-icon"><Buildings size={24} weight="duotone" /></span>
-            <h3>Company</h3>
-            <p>Fund payroll, add employees and run confidential pay.</p>
-            <span className="lp-role-cta">Open dashboard <ArrowRight size={14} weight="bold" /></span>
-          </button>
-          <button className="lp-card lp-role" onClick={onAudit}>
-            <span className="lp-role-icon"><MagnifyingGlass size={24} weight="duotone" /></span>
-            <h3>Auditor</h3>
-            <p>Verify the total a company grants you, never a salary.</p>
-            <span className="lp-role-cta">Open auditor <ArrowRight size={14} weight="bold" /></span>
-          </button>
-          <button className="lp-card lp-role" onClick={onMyPay}>
-            <span className="lp-role-icon"><Wallet size={24} weight="duotone" /></span>
-            <h3>Employee</h3>
-            <p>See your own pay, encrypted for everyone else.</p>
-            <span className="lp-role-cta">Open my pay <ArrowRight size={14} weight="bold" /></span>
-          </button>
-        </div>
-      </section>
-
-      {/* Built with — logo chips */}
+      {/* Built with — scrolling marquee */}
       <section className="lp-trust">
-        <span>Built with</span>
-        <div className="lp-trust-logos">
-          <span className="lp-logo-chip">
-            <img src="https://cdn.simpleicons.org/ethereum/EAF0FA" width={18} height={18} alt="Ethereum" />
-            Ethereum
-          </span>
-          <span className="lp-logo-chip">
-            <img src="https://cdn.simpleicons.org/solidity/EAF0FA" width={18} height={18} alt="Solidity" />
-            Solidity
-          </span>
-          <span className="lp-logo-chip">
-            <span className="lp-logo-monogram" style={{ background: "linear-gradient(135deg,#FFD54A,#FF9F1C)" }}>iX</span>
-            iExec · Nox
-          </span>
-          <span className="lp-logo-chip">
-            <span className="lp-logo-monogram" style={{ background: "linear-gradient(135deg,#F97362,#F04E37)" }}>S</span>
-            Sablier
-          </span>
+        <span className="lp-trust-label">Built with</span>
+        <div className="lp-marquee">
+          <div className="lp-marquee-track">
+            {[0, 1].map((dup) => (
+              <div className="lp-marquee-group" key={dup} aria-hidden={dup === 1}>
+                <span className="lp-logo-chip">
+                  <img src="https://cdn.simpleicons.org/ethereum/EAF0FA" width={20} height={20} alt="Ethereum" />
+                  Ethereum
+                </span>
+                <span className="lp-logo-chip">
+                  <img src="https://cdn.simpleicons.org/solidity/EAF0FA" width={20} height={20} alt="Solidity" />
+                  Solidity
+                </span>
+                <span className="lp-logo-chip">
+                  <span className="lp-logo-monogram" style={{ background: "linear-gradient(135deg,#FFD54A,#FF9F1C)" }}>iX</span>
+                  iExec · Nox
+                </span>
+                <span className="lp-logo-chip">
+                  <span className="lp-logo-monogram" style={{ background: "linear-gradient(135deg,#F97362,#F04E37)" }}>S</span>
+                  Sablier
+                </span>
+                <span className="lp-logo-chip">
+                  <img src="https://cdn.simpleicons.org/typescript/EAF0FA" width={20} height={20} alt="TypeScript" />
+                  TypeScript
+                </span>
+                <span className="lp-logo-chip">
+                  <img src="https://cdn.simpleicons.org/react/EAF0FA" width={20} height={20} alt="React" />
+                  React
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
