@@ -61,34 +61,55 @@ function short(a?: string) {
   return a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "";
 }
 
+function parseHash(): string[] {
+  return window.location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
+}
+function viewFromHash(): View {
+  const [root] = parseHash();
+  if (root === "app") return "app";
+  if (root === "verify") return "verify";
+  if (root === "audit") return "audit";
+  if (root === "mypay") return "mypay";
+  return "landing";
+}
+const SECTIONS: Section[] = ["overview", "funding", "payroll", "auditors"];
+function sectionFromHash(): Section {
+  const [root, sub] = parseHash();
+  if (root === "app" && SECTIONS.includes(sub as Section)) return sub as Section;
+  return "overview";
+}
+
 export function App() {
   const { address } = useAccount();
-  const [section, setSection] = useState<Section>("overview");
-  const routeFromHash = (): View => {
-    const h = window.location.hash;
-    if (h.includes("audit")) return "audit";
-    if (h.includes("mypay")) return "mypay";
-    if (h.includes("verify")) return "verify";
-    if (h.includes("app")) return "app";
-    return "landing";
-  };
-  const [view, setView] = useState<View>(routeFromHash);
+  const [section, setSection] = useState<Section>(sectionFromHash);
+  const [view, setView] = useState<View>(viewFromHash);
   const [company, setCompany] = useState<string>("");
   const [editingCompany, setEditingCompany] = useState(false);
 
   useEffect(() => {
-    const onHash = () => setView(routeFromHash());
+    const onHash = () => {
+      setView(viewFromHash());
+      setSection(sectionFromHash());
+    };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
   function go(v: View) {
     const map: Record<View, string> = {
-      app: "#/app", verify: "#/verify", audit: "#/audit", mypay: "#/mypay", landing: "#/",
+      app: "#/app/overview", verify: "#/verify", audit: "#/audit", mypay: "#/mypay", landing: "#/",
     };
     const hash = map[v];
     if (window.location.hash !== hash) window.location.hash = hash;
     setView(v);
+    if (v === "app") setSection("overview");
+  }
+
+  function goSection(s: Section) {
+    const hash = `#/app/${s}`;
+    if (window.location.hash !== hash) window.location.hash = hash;
+    setSection(s);
+    setView("app");
   }
 
   useEffect(() => {
@@ -127,7 +148,7 @@ export function App() {
   }
 
   const NavItem = ({ id, icon }: { id: Section; icon: React.ReactNode }) => (
-    <button className={`side-item ${section === id ? "on" : ""}`} onClick={() => setSection(id)}>
+    <button className={`side-item ${section === id ? "on" : ""}`} onClick={() => goSection(id)}>
       {icon} <span>{TITLES[id]}</span>
     </button>
   );
@@ -201,7 +222,7 @@ export function App() {
         </header>
 
         <main className="content-main">
-          {section === "overview" && <OverviewPanel onGo={setSection} />}
+          {section === "overview" && <OverviewPanel onGo={goSection} />}
           {section === "payroll" && <PayrollPanel />}
           {section === "funding" && <FundingPanel />}
           {section === "auditors" && <AuditorsPanel />}
