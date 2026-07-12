@@ -68,7 +68,7 @@ a:hover { text-decoration: underline; }
 .content-main { padding: 26px 28px 60px; }
 
 /* KPI overview */
-.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 20px; }
 .kpi { display: flex; align-items: center; gap: 14px; background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 16px; padding: 18px; }
 .kpi-icon { width: 42px; height: 42px; border-radius: 11px; background: rgba(59,130,246,0.10); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .kpi > div { display: flex; flex-direction: column; }
@@ -76,6 +76,21 @@ a:hover { text-decoration: underline; }
 .kpi-label { font-size: .8rem; color: var(--text-3); }
 .stack { display: flex; flex-direction: column; gap: 10px; }
 .stack .btn { margin-top: 0; justify-content: center; }
+
+/* Setup steps (Overview) */
+.steps { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.step-row {
+  display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; cursor: pointer;
+  background: var(--bg-subtle, #0f1830); border: 1px solid var(--border-soft); border-radius: 14px;
+  padding: 14px 16px; font-family: inherit; transition: border-color .15s, transform .15s;
+}
+.step-row:hover { border-color: var(--primary); transform: translateY(-1px); }
+.step-mark { color: var(--text-3); display: flex; flex-shrink: 0; }
+.step-row.done .step-mark { color: var(--green-2); }
+.step-body { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.step-title { font-weight: 700; color: var(--text); font-size: .98rem; }
+.step-desc { color: var(--text-2); font-size: .84rem; }
+.step-cta { display: inline-flex; align-items: center; gap: 5px; color: var(--green-2); font-weight: 700; font-size: .85rem; flex-shrink: 0; }
 
 /* Cards & grid */
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }

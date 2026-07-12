@@ -16,6 +16,10 @@ import {
   ArrowLeft,
   ArrowSquareOut,
   PencilSimple,
+  SquaresFour,
+  CheckCircle,
+  Circle,
+  ArrowRight,
 } from "@phosphor-icons/react";
 import {
   readVault,
@@ -39,9 +43,10 @@ import {
 } from "./lib/payvault";
 import { Landing } from "./Landing";
 
-type Section = "payroll" | "funding" | "auditors" | "mypay";
+type Section = "overview" | "payroll" | "funding" | "auditors" | "mypay";
 
 const TITLES: Record<Section, string> = {
+  overview: "Overview",
   payroll: "Payroll",
   funding: "Funding",
   auditors: "Auditors",
@@ -54,7 +59,7 @@ function short(a?: string) {
 
 export function App() {
   const { address } = useAccount();
-  const [section, setSection] = useState<Section>("funding");
+  const [section, setSection] = useState<Section>("overview");
   const routeFromHash = (): "landing" | "app" | "verify" => {
     const h = window.location.hash;
     if (h.includes("app")) return "app";
@@ -136,6 +141,9 @@ export function App() {
         )}
 
         <nav className="side-nav">
+          <div className="side-group">Overview</div>
+          <NavItem id="overview" icon={<SquaresFour size={18} weight="bold" />} />
+
           <div className="side-group">Company</div>
           <NavItem id="funding" icon={<Money size={18} weight="bold" />} />
           <NavItem id="payroll" icon={<Buildings size={18} weight="bold" />} />
@@ -172,6 +180,7 @@ export function App() {
         </header>
 
         <main className="content-main">
+          {section === "overview" && <OverviewPanel onGo={setSection} />}
           {section === "payroll" && <PayrollPanel />}
           {section === "funding" && <FundingPanel />}
           {section === "auditors" && <AuditorsPanel />}
@@ -179,6 +188,122 @@ export function App() {
         </main>
       </div>
     </div>
+  );
+}
+
+/* ---------------- Overview (home) ---------------- */
+
+function OverviewPanel({ onGo }: { onGo: (s: Section) => void }) {
+  const { address } = useAccount();
+  const { data: walletClient } = useWalletClient();
+  const [count, setCount] = useState(0);
+  const [budget, setBudget] = useState<bigint>(0n);
+  const [streamId, setStreamId] = useState<bigint>(0n);
+  const [total, setTotal] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      if (!address) return;
+      try {
+        const c = readVault();
+        setCount(Number((await c.read.employeeCount([address])) as bigint));
+        setBudget((await c.read.publicBudget([address])) as bigint);
+        setStreamId((await c.read.sablierStreamId([address])) as bigint);
+      } catch {
+        /* ignore */
+      }
+    })();
+  }, [address]);
+
+  if (!address)
+    return (
+      <div className="card center">
+        <p>Connect your wallet to see your payroll overview.</p>
+        <ConnectButton />
+      </div>
+    );
+
+  const funded = budget > 0n;
+  const hasEmployees = count > 0;
+
+  async function decryptTotal() {
+    if (!walletClient) return;
+    setBusy(true);
+    try {
+      const handle = (await readVault().read.totalPayrollHandle([address!])) as `0x${string}`;
+      if (handle === ZERO_HANDLE) return setTotal("0");
+      setTotal((await decryptWithRetry(walletClient, handle)).toString());
+    } catch {
+      /* ignore */
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const Step = ({ done, n, title, desc, cta, to }: any) => (
+    <button className={`step-row ${done ? "done" : ""}`} onClick={() => onGo(to)}>
+      <span className="step-mark">
+        {done ? <CheckCircle size={22} weight="fill" /> : <Circle size={22} weight="bold" />}
+      </span>
+      <span className="step-body">
+        <span className="step-title">{n}. {title}</span>
+        <span className="step-desc">{desc}</span>
+      </span>
+      <span className="step-cta">{cta} <ArrowRight size={15} weight="bold" /></span>
+    </button>
+  );
+
+  return (
+    <>
+      <div className="kpis kpis-4">
+        <div className="kpi">
+          <span className="kpi-icon"><Money size={20} weight="bold" /></span>
+          <div>
+            <span className="kpi-value">{funded ? formatUnits(budget, 18) : "—"}</span>
+            <span className="kpi-label">Funding budget (PayUSD)</span>
+          </div>
+        </div>
+        <div className="kpi">
+          <span className="kpi-icon"><UsersThree size={20} weight="bold" /></span>
+          <div>
+            <span className="kpi-value">{count}</span>
+            <span className="kpi-label">Employees</span>
+          </div>
+        </div>
+        <div className="kpi">
+          <span className="kpi-icon"><LockKey size={20} weight="bold" /></span>
+          <div>
+            <span className="kpi-value">
+              {total !== "" ? total : (
+                <button className="link" disabled={busy} onClick={decryptTotal}>Decrypt</button>
+              )}
+            </span>
+            <span className="kpi-label">Total payroll (encrypted)</span>
+          </div>
+        </div>
+        <div className="kpi">
+          <span className="kpi-icon"><CheckCircle size={20} weight="bold" /></span>
+          <div>
+            <span className="kpi-value">{funded && hasEmployees ? "Ready" : funded ? "Funded" : "Setup"}</span>
+            <span className="kpi-label">Payroll status</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="card">
+        <h3>Get started</h3>
+        <p className="muted">Set up confidential payroll in three steps.</p>
+        <div className="steps">
+          <Step done={funded} n={1} title="Fund payroll" to="funding"
+            desc={funded ? `Funded via Sablier stream #${streamId.toString()}` : "Deposit your budget through a public Sablier stream"} cta="Fund" />
+          <Step done={hasEmployees} n={2} title="Add employees" to="payroll"
+            desc={hasEmployees ? `${count} employee${count > 1 ? "s" : ""} on payroll` : "Register employees with encrypted salaries"} cta="Add" />
+          <Step done={false} n={3} title="Run payroll" to="payroll"
+            desc="Pay everyone a confidential balance in one click" cta="Pay" />
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -345,31 +470,6 @@ function PayrollPanel() {
 
   return (
     <>
-      {/* KPI overview */}
-      <div className="kpis">
-        <div className="kpi">
-          <span className="kpi-icon"><UsersThree size={20} weight="bold" /></span>
-          <div>
-            <span className="kpi-value">{employees.length}</span>
-            <span className="kpi-label">Employees</span>
-          </div>
-        </div>
-        <div className="kpi">
-          <span className="kpi-icon"><LockKey size={20} weight="bold" /></span>
-          <div>
-            <span className="kpi-value">{total !== "" ? total : "•••"}</span>
-            <span className="kpi-label">Total payroll (encrypted)</span>
-          </div>
-        </div>
-        <div className="kpi">
-          <span className="kpi-icon"><Money size={20} weight="bold" /></span>
-          <div>
-            <span className="kpi-value">{budget > 0n ? formatUnits(budget, 18) : "—"}</span>
-            <span className="kpi-label">Funding budget (PayUSD)</span>
-          </div>
-        </div>
-      </div>
-
       <div className="grid">
         <div className="card">
           <h3>Add an employee</h3>
