@@ -30,13 +30,9 @@ export function Landing({
           </span>
           <span>PayVault</span>
         </div>
-        <nav className="lp-nav-links">
-          <a href="#how">How it works</a>
-          <a href="#feature">Selective disclosure</a>
-          <button className="lp-nav-link" onClick={onMyPay}>Employees</button>
-          <button className="lp-nav-link" onClick={onAudit}>Auditors</button>
-        </nav>
         <div className="lp-nav-actions">
+          <button className="lp-btn lp-btn-ghost" onClick={onMyPay}>Employees</button>
+          <button className="lp-btn lp-btn-ghost" onClick={onAudit}>Auditors</button>
           <button className="lp-btn lp-btn-primary" onClick={onStart}>
             Get started <ArrowRight size={16} weight="bold" />
           </button>
