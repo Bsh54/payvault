@@ -25,10 +25,7 @@ export function Landing({
       {/* Sticky nav */}
       <header className="lp-nav">
         <div className="lp-brand">
-          <span className="lp-logo-mark">
-            <ShieldCheck weight="fill" size={19} />
-          </span>
-          <span>PayVault</span>
+          <img className="lp-logo-img" src="/payvault-logo.png" alt="PayVault" />
         </div>
         <div className="lp-nav-actions">
           <button className="lp-btn lp-btn-ghost" onClick={onMyPay}>Employees</button>
@@ -91,8 +88,7 @@ export function Landing({
           <div className="lp-ba-head">
             <Eye size={20} weight="bold" /> <span>A normal payment</span>
           </div>
-          <div className="lp-ba-amount before">5,000 <span>visible</span></div>
-          <p>On a public blockchain, anyone reads the amount. Salaries are exposed to the world.</p>
+          <img className="lp-ba-shot" src="/normal-payement.png" alt="Public transaction on Etherscan, amount visible" />
           <span className="lp-ba-link">View on Etherscan <ArrowRight size={14} /></span>
         </a>
 
@@ -102,8 +98,7 @@ export function Landing({
           <div className="lp-ba-head">
             <EyeSlash size={20} weight="bold" /> <span>With PayVault</span>
           </div>
-          <div className="lp-ba-amount after"><LockKey size={26} weight="fill" /> encrypted</div>
-          <p>The same operation becomes unreadable. Only the company and the employee can access it.</p>
+          <img className="lp-ba-shot" src="/encrypted.png" alt="Confidential transaction on Etherscan, amount hidden" />
           <span className="lp-ba-link">View on Etherscan <ArrowRight size={14} /></span>
         </a>
       </section>

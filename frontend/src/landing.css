@@ -225,3 +225,8 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--primary); outli
 @media (prefers-reduced-motion: reduce) {
   .lp *, .lp *::before, .lp *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }
+
+/* Brand logo image + before/after screenshots */
+.lp-logo-img { height: 26px; width: auto; display: block; }
+.lp-footer-brand .lp-logo-img { height: 24px; }
+.lp-ba-shot { width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border-soft); margin: 6px 0 14px; display: block; }
