@@ -720,9 +720,7 @@ function PayrollPanel() {
             <button className="modal-close" onClick={() => { setEditing(""); setEditSalary(""); }} aria-label="Close"><X size={18} weight="bold" /></button>
             <div className="modal-icon"><PencilSimple size={22} weight="duotone" /></div>
             <h3>Update salary</h3>
-            <p className="muted">
-              For <span className="mono">{short(editing)}</span>. The new amount is encrypted before it leaves your browser.
-            </p>
+            <p className="muted"><span className="mono">{short(editing)}</span></p>
             <label>New monthly salary</label>
             <div className="amount-field">
               <input autoFocus type="number" inputMode="decimal" placeholder="0"
@@ -734,7 +732,7 @@ function PayrollPanel() {
             </div>
             <div className="row" style={{ marginTop: 18 }}>
               <button className="btn" disabled={busy} onClick={() => saveSalary(editing as Address)}>
-                {busy ? <><CircleNotch size={17} weight="bold" className="spin" /> Encrypting…</> : <><LockKey size={17} weight="bold" /> Encrypt & update</>}
+                {busy ? <><CircleNotch size={17} weight="bold" className="spin" /> Updating…</> : <><LockKey size={17} weight="bold" /> Update</>}
               </button>
               <button className="btn ghost" disabled={busy} onClick={() => { setEditing(""); setEditSalary(""); }}>Cancel</button>
             </div>
