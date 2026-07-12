@@ -327,15 +327,14 @@ function OverviewPanel({ onGo }: { onGo: (s: Section) => void }) {
       </div>
 
       <div className="card">
-        <h3>Get started</h3>
-        <p className="muted">Set up confidential payroll in three steps.</p>
+        <h3>Quick actions</h3>
         <div className="steps">
           <Step done={funded} n={1} title="Fund payroll" to="funding"
-            desc={funded ? `Funded via Sablier stream #${streamId.toString()}` : "Deposit your budget through a public Sablier stream"} cta="Fund" />
+            desc={funded ? `Sablier stream #${streamId.toString()}` : "Deposit your budget"} cta="Fund" />
           <Step done={hasEmployees} n={2} title="Add employees" to="payroll"
-            desc={hasEmployees ? `${count} employee${count > 1 ? "s" : ""} on payroll` : "Register employees with encrypted salaries"} cta="Add" />
+            desc={hasEmployees ? `${count} on payroll` : "Register your team"} cta="Add" />
           <Step done={false} n={3} title="Run payroll" to="payroll"
-            desc="Pay everyone a confidential balance in one click" cta="Pay" />
+            desc="Pay your team" cta="Pay" />
         </div>
       </div>
     </>
@@ -407,7 +406,7 @@ function AuditPage({ onBack }: { onBack: () => void }) {
               <div className="public-out">
                 <div className="stat">
                   <span className="big">{total}</span>
-                  <span>total payroll (aggregate)</span>
+                  <span>total payroll</span>
                 </div>
               </div>
             )}
@@ -438,8 +437,7 @@ function MyPayPage({ onBack }: { onBack: () => void }) {
           </button>
         </header>
         <section className="verify-hero">
-          <h1>Your confidential pay.</h1>
-          <p className="muted">Connect your employee wallet to see the pay only you can read.</p>
+          <h1>My pay</h1>
         </section>
         <section className="verify-body">
           <div className="card center">
@@ -668,14 +666,14 @@ function PayrollPanel() {
         <div className="add-form">
           <label>Employee wallet</label>
           <input placeholder="0x…" value={emp} onChange={(e) => setEmp(e.target.value)} />
-          <label>Monthly salary (confidential)</label>
+          <label>Monthly salary</label>
           <div className="amount-field">
             <input type="number" inputMode="decimal" placeholder="0" value={salary} onChange={(e) => setSalary(e.target.value)} />
             <span className="amount-suffix">PayUSD</span>
           </div>
           <div className="row" style={{ marginTop: 14 }}>
             <button className="btn" disabled={busy} onClick={addEmployee}>
-              {busy ? <><CircleNotch size={17} weight="bold" className="spin" /> Adding…</> : <><LockKey size={17} weight="bold" /> Encrypt & add</>}
+              {busy ? <><CircleNotch size={17} weight="bold" className="spin" /> Adding…</> : <><Plus size={17} weight="bold" /> Add</>}
             </button>
             <button className="btn ghost" onClick={() => { setShowAdd(false); setResult(null); }}>Cancel</button>
           </div>
@@ -683,7 +681,7 @@ function PayrollPanel() {
       )}
 
       {employees.length === 0 ? (
-        <p className="muted empty">No employees yet. Click “Add employee” to register your first one.</p>
+        <p className="muted empty">No employees yet.</p>
       ) : (
         <table>
           <thead>
@@ -989,14 +987,11 @@ function AuditorsPanel() {
 
   return (
     <div className="card">
-      <h3>Grant an auditor</h3>
-      <p className="muted">
-        The auditor can decrypt the <strong>aggregate</strong> payroll only, never individual salaries.
-      </p>
+      <h3>Auditors</h3>
       <label>Auditor wallet</label>
       <input placeholder="0x…" value={auditor} onChange={(e) => setAuditor(e.target.value)} />
       <button className="btn" disabled={busy} onClick={grantAuditor}>
-        {busy ? <CircleNotch size={17} weight="bold" className="spin" /> : <ShieldCheck size={17} weight="bold" />} Grant aggregate access
+        {busy ? <CircleNotch size={17} weight="bold" className="spin" /> : <ShieldCheck size={17} weight="bold" />} Grant access
       </button>
       {result && <ResultBanner ok={result.ok}>{result.msg}</ResultBanner>}
 
@@ -1064,7 +1059,7 @@ function EmployeePanel() {
   if (!address)
     return (
       <div className="card center">
-        <p>Connect your employee wallet to see your confidential pay.</p>
+        <p>Connect your wallet.</p>
         <ConnectButton />
       </div>
     );
@@ -1072,7 +1067,7 @@ function EmployeePanel() {
   async function decryptPay() {
     if (!walletClient) return;
     setBusy(true);
-    setStatus("Decrypting your confidential pay…");
+    setStatus("Decrypting…");
     try {
       const handle = (await readVault().read.confidentialBalanceOf([address!])) as `0x${string}`;
       if (handle === ZERO_HANDLE) {
@@ -1081,9 +1076,9 @@ function EmployeePanel() {
       }
       const v = await decryptWithRetry(walletClient, handle);
       setPay(v.toString());
-      setStatus("Only you can read this. It is encrypted for everyone else.");
+      setStatus("");
     } catch {
-      setStatus("Nothing to decrypt yet, or access not granted.");
+      setStatus("Nothing to decrypt yet.");
     } finally {
       setBusy(false);
     }
@@ -1095,7 +1090,7 @@ function EmployeePanel() {
     setResult(null);
     try {
       const amount = await withdrawAll(walletClient, setStatus);
-      setResult({ ok: true, msg: `Withdrew ${amount.toString()} to real PayUSD in your wallet.` });
+      setResult({ ok: true, msg: `Withdrew ${amount.toString()} PayUSD.` });
       setStatus("");
       setPay("");
     } catch (e: any) {
@@ -1107,11 +1102,8 @@ function EmployeePanel() {
 
   return (
     <div className="card">
-      <h3>My confidential pay</h3>
-      <p className="muted">
-        Connected as <span className="mono">{short(address)}</span>. Your received pay is held as a
-        confidential <strong>cPAY</strong> balance (ERC-7984), encrypted on-chain. Only you can decrypt it.
-      </p>
+      <h3>My pay</h3>
+      <p className="muted">Connected as <span className="mono">{short(address)}</span></p>
       <div className="row">
         <button className="btn" disabled={busy || withdrawing} onClick={decryptPay}>
           {busy ? <CircleNotch size={17} weight="bold" className="spin" /> : <LockKeyOpen size={17} weight="bold" />} Decrypt my pay
@@ -1124,7 +1116,7 @@ function EmployeePanel() {
         <div className="public-out">
           <div className="stat">
             <span className="big">{pay}</span>
-            <span>your confidential pay (cPAY)</span>
+            <span>received pay</span>
           </div>
         </div>
       )}
@@ -1164,7 +1156,6 @@ function EmployeePanel() {
               ))}
             </tbody>
           </table>
-          <p className="muted" style={{ fontSize: ".78rem", marginTop: 6 }}>Dates are public. Amounts stay encrypted.</p>
         </div>
       )}
     </div>
