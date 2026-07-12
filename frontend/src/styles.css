@@ -190,7 +190,7 @@ table { width: 100%; border-collapse: collapse; margin-top: 10px; }
 th, td { text-align: left; padding: .65em .4em; border-bottom: 1px solid var(--border-soft); font-size: .9rem; }
 th { color: var(--text-3); font-weight: 600; }
 .mono, td.mono { font-family: ui-monospace, "DM Mono", monospace; font-variant-numeric: tabular-nums; }
-.row-actions { display: flex; gap: 14px; align-items: center; }
+.row-actions { display: flex; gap: 28px; align-items: center; }
 .row-actions .link { display: inline-flex; align-items: center; gap: 4px; text-decoration: none; }
 .row-actions a.link:hover { text-decoration: none; color: var(--green-2); }
 
