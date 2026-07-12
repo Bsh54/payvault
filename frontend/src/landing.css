@@ -123,7 +123,8 @@
 .lp-payslip-foot span { display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--green-2); font-weight: 600; }
 
 /* Before / After */
-.lp-ba { max-width: 1000px; margin: 0 auto; padding: 24px; display: grid; grid-template-columns: 1fr auto 1fr; gap: 18px; align-items: stretch; }
+.lp-ba { max-width: 1240px; margin: 0 auto; padding: 24px; display: grid; grid-template-columns: 1fr auto 1fr; gap: 22px; align-items: stretch; }
+.lp-ba-card { padding: 20px; }
 .lp-ba-arrow { color: var(--text-3); display: flex; align-items: center; justify-content: center; }
 .lp-ba-card { display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: var(--text); }
 .lp-ba-head { display: flex; align-items: center; gap: 8px; color: var(--text-2); font-size: 0.9rem; font-weight: 600; }
@@ -229,4 +230,4 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--primary); outli
 /* Brand logo image + before/after screenshots */
 .lp-logo-img { height: 26px; width: auto; display: block; }
 .lp-footer-brand .lp-logo-img { height: 24px; }
-.lp-ba-shot { width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border-soft); margin: 6px 0 14px; display: block; }
+.lp-ba-shot { width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border-soft); margin: 8px 0 14px; display: block; box-shadow: 0 8px 30px rgba(0,0,0,0.35); }
