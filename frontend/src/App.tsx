@@ -838,8 +838,7 @@ function AuditorsPanel() {
     <div className="card">
       <h3>Grant an auditor</h3>
       <p className="muted">
-        The auditor can decrypt the <strong>aggregate</strong> payroll only, never individual
-        salaries. Privacy and compliance together.
+        The auditor can decrypt the <strong>aggregate</strong> payroll only, never individual salaries.
       </p>
       <label>Auditor wallet</label>
       <input placeholder="0x…" value={auditor} onChange={(e) => setAuditor(e.target.value)} />
@@ -847,6 +846,12 @@ function AuditorsPanel() {
         {busy ? <CircleNotch size={17} weight="bold" className="spin" /> : <ShieldCheck size={17} weight="bold" />} Grant aggregate access
       </button>
       {result && <ResultBanner ok={result.ok}>{result.msg}</ResultBanner>}
+
+      <div className="mini-steps">
+        <div className="mini-step"><span className="hint-num">1</span> Grant access to the auditor's wallet above.</div>
+        <div className="mini-step"><span className="hint-num">2</span> Share the auditor page&nbsp;<a href="/audit" target="_blank" rel="noreferrer">/audit&nbsp;<ArrowSquareOut size={12} weight="bold" /></a></div>
+        <div className="mini-step"><span className="hint-num">3</span> They connect and decrypt the total — never a salary.</div>
+      </div>
     </div>
   );
 }

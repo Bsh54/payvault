@@ -176,6 +176,13 @@ input:focus { outline: none; border-color: var(--primary); }
 .panel-head h3 { margin: 0; }
 .btn.sm { margin-top: 0; padding: .5em .9em; font-size: .88rem; border-radius: 10px; }
 
+/* Mini steps (auditor flow hint) */
+.mini-steps { display: flex; flex-direction: column; gap: 10px; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border-soft); }
+.mini-step { display: flex; align-items: center; gap: 11px; color: var(--text-2); font-size: .9rem; }
+.mini-step a { display: inline-flex; align-items: center; gap: 4px; color: var(--green-2); font-weight: 600; text-decoration: none; }
+.mini-step a:hover { text-decoration: none; }
+.hint-num { width: 22px; height: 22px; flex-shrink: 0; border-radius: 999px; background: rgba(59,130,246,0.12); color: var(--primary); font-weight: 800; font-size: .78rem; display: flex; align-items: center; justify-content: center; }
+
 /* Inline add form (progressive disclosure) */
 .add-form { background: var(--bg-subtle, #0f1830); border: 1px solid var(--border-soft); border-radius: 14px; padding: 18px; margin-bottom: 18px; }
 .add-form label:first-child { margin-top: 0; }
