@@ -310,3 +310,7 @@ td .spin { vertical-align: middle; margin-right: 6px; color: var(--text-3); }
   transition: color .15s, border-color .15s, background .15s;
 }
 .auditor-row .link.danger:hover { color: #fff; border-color: #ef4444; background: rgba(239,68,68,0.14); }
+
+/* Faucet hint under Connect buttons */
+.faucet-hint { margin-top: 14px; font-size: .82rem; color: var(--text-3); text-align: center; }
+.faucet-hint a { color: var(--green-2); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }

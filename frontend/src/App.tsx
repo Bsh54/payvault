@@ -264,6 +264,7 @@ function OverviewPanel({ onGo }: { onGo: (s: Section) => void }) {
       <div className="card center">
         <p>Connect your wallet to see your payroll overview.</p>
         <ConnectButton />
+        <FaucetHint />
       </div>
     );
 
@@ -393,6 +394,7 @@ function AuditPage({ onBack }: { onBack: () => void }) {
           <div className="card center">
             <p>Connect the auditor wallet you were granted access with.</p>
             <ConnectButton />
+            <FaucetHint />
           </div>
         ) : (
           <div className="card">
@@ -443,6 +445,7 @@ function MyPayPage({ onBack }: { onBack: () => void }) {
         <section className="verify-body">
           <div className="card center">
             <ConnectButton />
+            <FaucetHint />
           </div>
         </section>
       </div>
@@ -539,6 +542,7 @@ function PayrollPanel() {
       <div className="card center">
         <p>Connect your wallet to manage your company payroll.</p>
         <ConnectButton />
+        <FaucetHint />
       </div>
     );
 
@@ -749,6 +753,18 @@ function PayrollPanel() {
   );
 }
 
+/* Small hint under Connect buttons: you need a bit of Sepolia ETH for gas. */
+function FaucetHint() {
+  return (
+    <p className="faucet-hint">
+      New here? You need a little Sepolia ETH for gas.{" "}
+      <a href="https://cloud.google.com/application/web3/faucet/ethereum/sepolia" target="_blank" rel="noreferrer">
+        Get some from a faucet <ArrowSquareOut size={12} weight="bold" />
+      </a>
+    </p>
+  );
+}
+
 /* Animated success / error banner (no emojis) */
 function ResultBanner({ ok, children }: { ok: boolean; children: React.ReactNode }) {
   return (
@@ -794,6 +810,7 @@ function FundingPanel() {
       <div className="card center">
         <p>Connect your wallet to fund your payroll.</p>
         <ConnectButton />
+        <FaucetHint />
       </div>
     );
 
@@ -958,6 +975,7 @@ function AuditorsPanel() {
       <div className="card center">
         <p>Connect your wallet to grant auditor access.</p>
         <ConnectButton />
+        <FaucetHint />
       </div>
     );
 
@@ -1072,6 +1090,7 @@ function EmployeePanel() {
       <div className="card center">
         <p>Connect your wallet.</p>
         <ConnectButton />
+        <FaucetHint />
       </div>
     );
 
